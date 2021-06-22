@@ -8,11 +8,11 @@ import akka.actor.typed.javadsl.Receive;
 
 import java.util.HashSet;
 
-public class Generator extends AbstractBehavior<Generator.IGenerator> {
+public class Generator extends AbstractBehavior<Generator.Command> {
 
-    public interface IGenerator {};
+    public interface Command {};
 
-    public static class ToIgnoreWords implements IGenerator {
+    public static class ToIgnoreWords implements Command {
         private HashSet toIgnoreWords;
 
         public ToIgnoreWords(HashSet toIgnoreWords){
@@ -20,26 +20,28 @@ public class Generator extends AbstractBehavior<Generator.IGenerator> {
         }
     }
 
-    public static class Analyze implements IGenerator {
+    public static class Analyze implements Command {
         private String directoryPath;
+        private int wordsToRetrieve;
 
-        public Analyze(String directoryPath){
+        public Analyze(String directoryPath, int wordsToRetrieve){
             this.directoryPath = directoryPath;
+            this.wordsToRetrieve = wordsToRetrieve;
         }
     }
 
     /** Factory method e costruttore */
-    public static Behavior<IGenerator> create() {
+    public static Behavior<Command> create() {
         return Behaviors.setup(Generator::new);
     }
 
-    private Generator(ActorContext<IGenerator> context) {
+    private Generator(ActorContext<Command> context) {
         super(context);
     }
 
     /** Receive dei messaggi */
     @Override
-    public Receive<IGenerator> createReceive() {
+    public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(Generator.Analyze.class, this::onStartAnalyze)
                 .onMessage(Generator.ToIgnoreWords.class, this::onToIgnoreWords)
@@ -47,7 +49,7 @@ public class Generator extends AbstractBehavior<Generator.IGenerator> {
     }
 
     /** Handler alla ricezione dei messaggi */
-    private Behavior<IGenerator> onStartAnalyze(Generator.Analyze command) {
+    private Behavior<Command> onStartAnalyze(Generator.Analyze command) {
         //#create-actors
         /*ActorRef<Greeter.Greeted> replyTo =
                 getContext().spawn(GreeterBot.create(3), command.directoryPath);
@@ -56,7 +58,7 @@ public class Generator extends AbstractBehavior<Generator.IGenerator> {
         return this;
     }
 
-    private Behavior<IGenerator> onToIgnoreWords(Generator.ToIgnoreWords command) {
+    private Behavior<Command> onToIgnoreWords(Generator.ToIgnoreWords command) {
         //#create-actors
         /*ActorRef<Greeter.Greeted> replyTo =
                 getContext().spawn(GreeterBot.create(3), command.directoryPath);

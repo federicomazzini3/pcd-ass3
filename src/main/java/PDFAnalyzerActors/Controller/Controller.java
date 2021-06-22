@@ -1,18 +1,15 @@
 package PDFAnalyzerActors.Controller;
 
-import ExampleAkka.GreeterMain;
 import PDFAnalyzerActors.Actors.AnalyzerMain;
-import PDFAnalyzerActors.Model.Initializer;
 import PDFAnalyzerActors.View.View;
-import akka.actor.Actor;
 import akka.actor.typed.ActorSystem;
 
 public class Controller {
     private View view;
     private String directoryPdf;
     private String toIgnoreFilePath;
-    private int wordsToRetrive;
-    private final ActorSystem<AnalyzerMain.Analyze> analyzerMain;
+    private int wordsToRetrieve;
+    private final ActorSystem<AnalyzerMain.Command> analyzerMain;
 
     public Controller() {
     	analyzerMain = ActorSystem.create(AnalyzerMain.create(), "master");
@@ -31,14 +28,15 @@ public class Controller {
     }
 
     public synchronized void setNumberOfWords(int n) {
-        this.wordsToRetrive = n;
+        this.wordsToRetrieve = n;
     }
     
     public synchronized void setSplit(boolean split) {
     }
 
     public synchronized void notifyStarted() {
-        analyzerMain.tell(new AnalyzerMain.Analyze(directoryPdf, toIgnoreFilePath, wordsToRetrive));
+        analyzerMain.tell(new AnalyzerMain.ToIgnore(toIgnoreFilePath));
+        analyzerMain.tell(new AnalyzerMain.Analyze(directoryPdf, wordsToRetrieve));
     }
 
     public synchronized void notifyStopped() {
