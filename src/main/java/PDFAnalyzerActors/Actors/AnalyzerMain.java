@@ -1,5 +1,6 @@
 package PDFAnalyzerActors.Actors;
 
+import PDFAnalyzerActors.View.View;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
@@ -16,38 +17,40 @@ public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
 
     /** Tipo di messaggio che questo attore processa */
     public interface Command{}
+
     public static class ToIgnore implements Command {
-        private String toIgnoreFilePath;
+        private final String toIgnoreFilePath;
 
         public ToIgnore(String toIgnoreFilePath){
             this.toIgnoreFilePath = toIgnoreFilePath;
         }
     }
 
-    public static class Analyze implements Command {
-        private String directoryPath;
-        private int wordsToRetrieve;
+    public static class Discovery implements Command {
+        private final String directoryPath;
+        private final int wordsToRetrieve;
 
-        public Analyze(String directoryPath, int wordsToRetrieve) {
+        public Discovery(String directoryPath, int wordsToRetrieve) {
             this.directoryPath = directoryPath;
             this.wordsToRetrieve = wordsToRetrieve;
         }
     }
 
-    private final ActorRef<ToIgnorer.ToIgnore> ignorer;
+    private final ActorRef<Ignorer.Command> ignorer;
     private final ActorRef<Generator.Command> generator;
     private final ActorRef<Collecter.Command> collecter;
 
     /** Factory method e costruttore */
-    public static Behavior<Command> create() {
-        return Behaviors.setup(AnalyzerMain::new);
+    public static Behavior<Command> create(View view, int wordsToRetrieve) {
+        //return Behaviors.setup(AnalyzerMain::new);
+        return Behaviors.setup(context -> new AnalyzerMain(context, view, wordsToRetrieve));
     }
 
-    private AnalyzerMain(ActorContext<Command> context) {
+    private AnalyzerMain(ActorContext<Command> context, View view, int wordsToRetrieve) {
         super(context);
-        ignorer = context.spawn(ToIgnorer.create(), "ignorer");
-        generator = context.spawn(Generator.create(), "generator");
-        collecter = context.spawn(Collecter.create(), "collecter");
+        ignorer = context.spawn(Ignorer.create(), "ignorer");
+        generator = context.spawn(Generator.create(ignorer), "generator");
+        collecter = context.spawn(Collecter.create(wordsToRetrieve, view), "collecter");
     }
 
     /** Receive dei messaggi */
@@ -55,19 +58,18 @@ public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(AnalyzerMain.ToIgnore.class, this::onStartToIgnoreWords)
-                .onMessage(AnalyzerMain.Analyze.class, this::onStartAnalyze)
+                .onMessage(AnalyzerMain.Discovery.class, this::onStartAnalyze)
                 .build();
     }
 
     /** Handler alla ricezione dei messaggi */
     private Behavior<Command> onStartToIgnoreWords(ToIgnore toIgnore) {
-        ignorer.tell(new ToIgnorer.ToIgnore(toIgnore.toIgnoreFilePath, generator));
+        ignorer.tell(new Ignorer.GenerateToIgnoreWords(toIgnore.toIgnoreFilePath));
         return Behaviors.same();
     }
 
-    private Behavior<Command> onStartAnalyze(Analyze analyze) {
-        //ignorer.tell(new ToIgnorer.ToIgnore(command.toIgnoreFilePath, generator));
-        generator.tell(new Generator.Analyze(analyze.directoryPath, analyze.wordsToRetrieve));
+    private Behavior<Command> onStartAnalyze(Discovery discovery) {
+        generator.tell(new Generator.Discovery(discovery.directoryPath, discovery.wordsToRetrieve, collecter));
         return Behaviors.same();
     }
 }

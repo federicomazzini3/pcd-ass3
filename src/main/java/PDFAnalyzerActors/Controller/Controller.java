@@ -9,10 +9,9 @@ public class Controller {
     private String directoryPdf;
     private String toIgnoreFilePath;
     private int wordsToRetrieve;
-    private final ActorSystem<AnalyzerMain.Command> analyzerMain;
+    private  ActorSystem<AnalyzerMain.Command> analyzerMain;
 
     public Controller() {
-    	analyzerMain = ActorSystem.create(AnalyzerMain.create(), "master");
     }
 
     public synchronized void setView(View view) {
@@ -35,8 +34,9 @@ public class Controller {
     }
 
     public synchronized void notifyStarted() {
+        analyzerMain = ActorSystem.create(AnalyzerMain.create(view, wordsToRetrieve), "master");
         analyzerMain.tell(new AnalyzerMain.ToIgnore(toIgnoreFilePath));
-        analyzerMain.tell(new AnalyzerMain.Analyze(directoryPdf, wordsToRetrieve));
+        analyzerMain.tell(new AnalyzerMain.Discovery(directoryPdf, wordsToRetrieve));
     }
 
     public synchronized void notifyStopped() {
