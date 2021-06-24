@@ -63,7 +63,7 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Pdf> {
                 String pageText = stripper.getText(page);
                 log("Splitto la pagina: " + i + " di " + currentFile);
                 log("Metto in coda il task per la pagina: " + i + " del file " + currentFile);
-                ActorRef<TextAnalyzer.Command> analyzer = getContext().spawn(TextAnalyzer.create(ignorer), "pdfAnalyzer" + i);
+                ActorRef<TextAnalyzer.Command> analyzer = getContext().spawn(TextAnalyzer.create(ignorer), "TEXTAnalyzer" + i);
                 analyzers.add(analyzer);
                 analyzer.tell(new TextAnalyzer.Text(pageText, i, currentFile, pdf.replyTo));
                 log("Invio per la pagina " + i + " del file " + currentFile + " fatto");

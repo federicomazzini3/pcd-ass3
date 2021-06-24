@@ -81,8 +81,8 @@ public class Generator extends AbstractBehavior<Generator.Command> {
                     .filter(this::isPdf)
                     .map(this::toFile)
                     .forEach(doc -> {
-                        log("Creo attore per il file " + doc.getName());
-                        ActorRef<PdfAnalyzer.Pdf> analyzer = getContext().spawn(PdfAnalyzer.create(ignorer), "pdfAnalyzer" + i);
+                        log("CREO L'ATTORE PER IL FILE: " + doc.getName());
+                        ActorRef<PdfAnalyzer.Pdf> analyzer = getContext().spawn(PdfAnalyzer.create(ignorer), "PDFAnalyzer" + i);
                         analyzers.add(analyzer);
                         analyzer.tell(new PdfAnalyzer.Pdf(doc, discovery.replyTo));
                         i.getAndIncrement();

@@ -10,7 +10,8 @@ import akka.actor.typed.javadsl.Receive;
 /**
     Esegue lo spawn degli attori ignorer, generator e sink
     Invia all'ignorer un messaggio per iniziare il discovery delle parole da ignorare
-    Quando l'ignorer ha trovato le parole da ignorare, le passa al generator il quale inizierà ad analizzare la directory contenente i pdf
+    Quando l'ignorer ha trovato le parole da ignorare, le passa al generator il quale
+    inizierà ad analizzare la directory contenente i pdf
  */
 
 public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
@@ -42,7 +43,6 @@ public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
 
     /** Factory method e costruttore */
     public static Behavior<Command> create(View view, int wordsToRetrieve) {
-        //return Behaviors.setup(AnalyzerMain::new);
         return Behaviors.setup(context -> new AnalyzerMain(context, view, wordsToRetrieve));
     }
 

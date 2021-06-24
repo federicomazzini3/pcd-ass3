@@ -78,7 +78,10 @@ public class Ignorer extends AbstractBehavior<Ignorer.Command> {
         } finally {
             log("Finito");
         }
-        return buffer.unstashAll(Behaviors.receive(Ignorer.Command.class).onMessage(Ignorer.GetToIgnoreWords.class, this::onGetToIgnoreWords).build());
+
+        return buffer.unstashAll(Behaviors.receive(Ignorer.Command.class)
+                .onMessage(Ignorer.GetToIgnoreWords.class, this::onGetToIgnoreWords)
+                .build());
     }
 
     private Behavior<Command> onGetToIgnoreWords(GetToIgnoreWords getToIgnoreWords) {

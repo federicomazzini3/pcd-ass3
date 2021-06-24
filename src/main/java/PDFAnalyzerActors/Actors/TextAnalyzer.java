@@ -12,6 +12,7 @@ import java.util.StringTokenizer;
 public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
 
     public interface Command{}
+
     public static class Text implements Command {
         private String text;
         private int currentPage;
@@ -52,21 +53,23 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
         super(context);
         this.buffer = buffer;
         ignorer.tell(new Ignorer.GetToIgnoreWords(context.getSelf()));
-        log("Creazione");
+        log("Creazione TextAnalyzer");
     }
 
     @Override
     public Receive<TextAnalyzer.Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(TextAnalyzer.ToIgnoreWords.class, this::onGetToIgnoreWords)
-                .onMessage(Command.class, this::stashOtherCommand)
+                .onMessage(TextAnalyzer.Command.class, this::stashOtherCommand)
                 .build();
     }
 
     private Behavior<Command> onGetToIgnoreWords(TextAnalyzer.ToIgnoreWords toIgnoreWords) {
         this.toIgnoreWords = toIgnoreWords.toIgnoreWords;
         //return Behaviors.receive(TextAnalyzer.Command.class).onMessage(TextAnalyzer.Text.class, this::onStartAnalyze).build();
-        return buffer.unstashAll(Behaviors.receive(TextAnalyzer.Command.class).onMessage(TextAnalyzer.Text.class, this::onStartAnalyze).build());
+        return buffer.unstashAll(Behaviors.receive(TextAnalyzer.Command.class).
+                onMessage(TextAnalyzer.Text.class, this::onStartAnalyze)
+                .build());
     }
 
     private Behavior<Command> stashOtherCommand(Command message) {
@@ -89,7 +92,7 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
             if (!toIgnoreWords.contains(word))
                 localCounter.merge(word, 1, Integer::sum);
         }
-        log("Finito di analizzare il testo");
+        log("Finito di analizzare il testo della pagina");
         log("Mando i risultati al collecter");
         //counter.mergeOccurrence(localCounter, processedWords);
         //ResultAnalyzeTask task = new ResultAnalyzeTask(counter, wordsToRetrieve, view, stopFlag);
