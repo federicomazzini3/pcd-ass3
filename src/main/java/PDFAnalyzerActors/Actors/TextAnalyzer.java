@@ -34,6 +34,10 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
         }
     }
 
+    public static class Die implements Command {
+        public Die(){}
+    }
+
     private HashSet<String> toIgnoreWords;
     private final StashBuffer<Command> buffer;
 
@@ -61,6 +65,7 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
         return newReceiveBuilder()
                 .onMessage(TextAnalyzer.ToIgnoreWords.class, this::onGetToIgnoreWords)
                 .onMessage(TextAnalyzer.Command.class, this::stashOtherCommand)
+                .onMessage(TextAnalyzer.Die.class, this::onDie)
                 .build();
     }
 
@@ -96,11 +101,16 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
         log("Mando i risultati al collecter");
         //counter.mergeOccurrence(localCounter, processedWords);
         //ResultAnalyzeTask task = new ResultAnalyzeTask(counter, wordsToRetrieve, view, stopFlag);
-        text.replyTo.tell(new Collecter.Collect(localCounter));
+        text.replyTo.tell(new Collecter.Collect(localCounter, processedWords));
         return this;
+    }
+
+    private Behavior<Command> onDie(Die die) {
+        return Behaviors.stopped();
     }
 
     public void log(String s){
         System.out.println("[" + Thread.currentThread().getName() + "] " + "[Text Analyzer] " + s);
     }
+
 }

@@ -18,15 +18,23 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
 
     public static class Collect implements Command {
         private Map<String, Integer> occurrences;
+        private int processedWords;
 
-        public Collect(Map<String, Integer> occurrences) {
+        public Collect(Map<String, Integer> occurrences, int processedWords) {
             this.occurrences = occurrences;
+            this.processedWords = processedWords;
         }
+    }
+
+public static class Die implements Command {
+
+        public Die(){}
     }
 
     private final View view;
     private final int wordsToRetrieve;
     private Map<String, Integer> occurrences;
+    private int processedWords;
 
     /**
      * Factory method e costruttore
@@ -40,6 +48,7 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
         this.view = view;
         this.wordsToRetrieve = wordsToRetrieve;
         this.occurrences = new HashMap<>();
+        this.processedWords = 0;
         log("Creazione");
     }
 
@@ -47,6 +56,7 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
     public Receive<Collecter.Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(Collecter.Collect.class, this::onCollect)
+                .onMessage(Collecter.Die.class, this::onDie)
                 .build();
     }
 
@@ -54,8 +64,9 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
         log("collect");
         log(collect.occurrences);
         collect.occurrences.forEach((k, v) -> this.occurrences.merge(k, v, Integer::sum));
+        this.processedWords = this.processedWords + collect.processedWords;
         List<Occurrence> occ = createOccurrencesList(this.occurrences, wordsToRetrieve);
-        updateView(occ);
+        updateView(occ, this.processedWords);
         return this;
     }
 
@@ -67,8 +78,13 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
                 .collect(Collectors.toList());
     }
 
-    private void updateView(List<Occurrence> occurrences) {
+    private Behavior<Command> onDie(Die die) {
+        return Behaviors.stopped();
+    }
+
+    private void updateView(List<Occurrence> occurrences, int processedWords) {
         view.updateOccurrencesLabel(occurrences);
+        view.updateCountValue(processedWords);
     }
 
     public void log(Object s){

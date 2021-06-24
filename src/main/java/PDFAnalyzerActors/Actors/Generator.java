@@ -41,7 +41,12 @@ public class Generator extends AbstractBehavior<Generator.Command> {
         }
     }
 
-    private ArrayList<ActorRef<PdfAnalyzer.Pdf>> analyzers;
+    public static class Die implements Command {
+
+        public Die(){}
+    }
+
+    private ArrayList<ActorRef<PdfAnalyzer.Command>> analyzers;
     private final ActorRef<Ignorer.Command> ignorer;
 
     /**
@@ -65,6 +70,7 @@ public class Generator extends AbstractBehavior<Generator.Command> {
         return newReceiveBuilder()
                 .onMessage(Generator.Discovery.class, this::onStartDiscovery)
                 .onMessage(Generator.ToIgnoreWords.class, this::onToIgnoreWords)
+                .onMessage(Generator.Die.class, this::onDie)
                 .build();
     }
 
@@ -82,7 +88,7 @@ public class Generator extends AbstractBehavior<Generator.Command> {
                     .map(this::toFile)
                     .forEach(doc -> {
                         log("CREO L'ATTORE PER IL FILE: " + doc.getName());
-                        ActorRef<PdfAnalyzer.Pdf> analyzer = getContext().spawn(PdfAnalyzer.create(ignorer), "PDFAnalyzer" + i);
+                        ActorRef<PdfAnalyzer.Command> analyzer = getContext().spawn(PdfAnalyzer.create(ignorer), "PDFAnalyzer" + i);
                         analyzers.add(analyzer);
                         analyzer.tell(new PdfAnalyzer.Pdf(doc, discovery.replyTo));
                         i.getAndIncrement();
@@ -101,9 +107,17 @@ public class Generator extends AbstractBehavior<Generator.Command> {
                 getContext().spawn(GreeterBot.create(3), command.directoryPath);
         ignorer.tell(new ToIgnorer.ToIgnore(command.toIgnoreFilePath, replyTo));*/
         //#create-actors
-        for(ActorRef<PdfAnalyzer.Pdf> analyzer : analyzers){
+        for(ActorRef<PdfAnalyzer.Command> analyzer : analyzers){
         }
         return this;
+    }
+
+    private Behavior<Command> onDie(Die die) {
+        for(ActorRef<PdfAnalyzer.Command> item : analyzers){
+            item.tell(new PdfAnalyzer.Die());
+            Behaviors.stopped();
+        }
+        return Behaviors.stopped();
     }
 
     private File toFile(Path path) {

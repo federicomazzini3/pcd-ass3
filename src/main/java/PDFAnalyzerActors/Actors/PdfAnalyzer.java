@@ -14,9 +14,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Pdf> {
+public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Command> {
 
-    public static class Pdf {
+    public interface Command{}
+
+    public static class Pdf implements Command{
         private File file;
         private final ActorRef<Collecter.Command> replyTo;
 
@@ -26,17 +28,21 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Pdf> {
         }
     }
 
+    public static class Die implements Command{
+        public Die(){}
+    }
+
     private ArrayList<ActorRef<TextAnalyzer.Command>> analyzers;
     private final ActorRef<Ignorer.Command> ignorer;
 
     /**
      * Factory method e costruttore
      */
-    public static Behavior<PdfAnalyzer.Pdf> create(ActorRef<Ignorer.Command> ignorer) {
+    public static Behavior<Command> create(ActorRef<Ignorer.Command> ignorer) {
         return Behaviors.setup(context -> new PdfAnalyzer(context, ignorer));
     }
 
-    private PdfAnalyzer(ActorContext<PdfAnalyzer.Pdf> context, ActorRef<Ignorer.Command> ignorer) {
+    private PdfAnalyzer(ActorContext<Command> context, ActorRef<Ignorer.Command> ignorer) {
         super(context);
         this.analyzers = new ArrayList<>();
         this.ignorer = ignorer;
@@ -44,13 +50,14 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Pdf> {
     }
 
     @Override
-    public Receive<Pdf> createReceive() {
+    public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(PdfAnalyzer.Pdf.class, this::onStartAnalyze)
+                .onMessage(PdfAnalyzer.Die.class, this::onDie)
                 .build();
     }
 
-    private Behavior<Pdf> onStartAnalyze(PdfAnalyzer.Pdf pdf) {
+    private Behavior<Command> onStartAnalyze(Pdf pdf) {
         String currentFile = pdf.file.getName();
         this.log("Suddivido in ulteriori task il file " + currentFile);
         try {
@@ -76,6 +83,14 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Pdf> {
             e.printStackTrace();
         }
         return this;
+    }
+
+    private Behavior<Command> onDie(Die die) {
+        for(ActorRef<TextAnalyzer.Command> item : analyzers){
+            item.tell(new TextAnalyzer.Die());
+            Behaviors.stopped();
+        }
+        return Behaviors.stopped();
     }
 
     public void log(String s) {

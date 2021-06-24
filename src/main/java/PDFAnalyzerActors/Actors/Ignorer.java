@@ -29,6 +29,10 @@ public class Ignorer extends AbstractBehavior<Ignorer.Command> {
         }
     }
 
+    public static class Die implements Command {
+        public Die(){}
+    }
+
     private HashSet<String> toIgnoreWords;
     private final StashBuffer<Ignorer.Command> buffer;
 
@@ -54,6 +58,7 @@ public class Ignorer extends AbstractBehavior<Ignorer.Command> {
         return newReceiveBuilder()
                 .onMessage(GenerateToIgnoreWords.class, this::onStartToIgnoreWords)
                 .onMessage(Ignorer.Command.class, this::stashOtherCommand)
+                .onMessage(Die.class, this::onDie)
                 .build();
     }
 
@@ -95,7 +100,13 @@ public class Ignorer extends AbstractBehavior<Ignorer.Command> {
         return Behaviors.same();
     }
 
+    private Behavior<Command> onDie(Die Die) {
+        return Behaviors.stopped();
+    }
+
+
     private void log(String s) {
         System.out.println("[" + Thread.currentThread().getName() + "] " + "[Ignorer] " + s);
     }
+
 }

@@ -37,6 +37,10 @@ public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
         }
     }
 
+    public static class Die implements Command {
+        public Die(){}
+    }
+
     private final ActorRef<Ignorer.Command> ignorer;
     private final ActorRef<Generator.Command> generator;
     private final ActorRef<Collecter.Command> collecter;
@@ -59,6 +63,7 @@ public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
         return newReceiveBuilder()
                 .onMessage(AnalyzerMain.ToIgnore.class, this::onStartToIgnoreWords)
                 .onMessage(AnalyzerMain.Discovery.class, this::onStartAnalyze)
+                .onMessage(AnalyzerMain.Die.class, this::onDie)
                 .build();
     }
 
@@ -72,4 +77,12 @@ public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
         generator.tell(new Generator.Discovery(discovery.directoryPath, discovery.wordsToRetrieve, collecter));
         return Behaviors.same();
     }
+
+    private Behavior<Command> onDie(Die die) {
+        ignorer.tell(new Ignorer.Die());
+        generator.tell(new Generator.Die());
+        collecter.tell(new Collecter.Die());
+        return Behaviors.stopped();
+    }
+
 }

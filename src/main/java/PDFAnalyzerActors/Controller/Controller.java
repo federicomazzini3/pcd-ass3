@@ -30,9 +30,6 @@ public class Controller {
         this.wordsToRetrieve = n;
     }
     
-    public synchronized void setSplit(boolean split) {
-    }
-
     public synchronized void notifyStarted() {
         analyzerMain = ActorSystem.create(AnalyzerMain.create(view, wordsToRetrieve), "master");
         analyzerMain.tell(new AnalyzerMain.ToIgnore(toIgnoreFilePath));
@@ -40,5 +37,7 @@ public class Controller {
     }
 
     public synchronized void notifyStopped() {
+        analyzerMain.terminate();
+        analyzerMain.tell(new AnalyzerMain.Die());
     }
 }

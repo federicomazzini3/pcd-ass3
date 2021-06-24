@@ -33,7 +33,6 @@ public class ShowGUI extends JFrame implements ActionListener {
     private Controller controller;
     private JTextField counterWords;
     private JLabel lblChrono;
-    private JCheckBox chckbxSplitter;
 
     private static final String TITLE = "PDF Analyzer";
     private static final String DIR_CHOOSER_LBL = "Directory PDF";
@@ -120,9 +119,6 @@ public class ShowGUI extends JFrame implements ActionListener {
 
         lblChrono = new JLabel("");
         lblChrono.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        
-        chckbxSplitter = new JCheckBox("Split PDF");
-        chckbxSplitter.setFont(new Font("Tahoma", Font.PLAIN, 16));
 
         GroupLayout gl_panel = new GroupLayout(panel);
         gl_panel.setHorizontalGroup(
@@ -138,30 +134,27 @@ public class ShowGUI extends JFrame implements ActionListener {
         					.addGap(32)
         					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
         						.addComponent(lblOccurrencesRetrieve, GroupLayout.PREFERRED_SIZE, 107, GroupLayout.PREFERRED_SIZE)
-        						.addComponent(lblShowOccurrences, GroupLayout.DEFAULT_SIZE, 1054, Short.MAX_VALUE)
+        						.addComponent(lblShowOccurrences, GroupLayout.DEFAULT_SIZE, 1144, Short.MAX_VALUE)
         						.addComponent(lblChrono, GroupLayout.PREFERRED_SIZE, 214, GroupLayout.PREFERRED_SIZE)))
         				.addGroup(gl_panel.createSequentialGroup()
         					.addContainerGap()
-        					.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
+        					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+        						.addComponent(lblErrorRequiredField, GroupLayout.PREFERRED_SIZE, 581, GroupLayout.PREFERRED_SIZE)
         						.addGroup(gl_panel.createSequentialGroup()
-        							.addComponent(lblErrorRequiredField, GroupLayout.PREFERRED_SIZE, 581, GroupLayout.PREFERRED_SIZE)
-        							.addGap(386)
-        							.addComponent(chckbxSplitter, GroupLayout.PREFERRED_SIZE, 99, GroupLayout.PREFERRED_SIZE))
-        						.addGroup(Alignment.LEADING, gl_panel.createSequentialGroup()
         							.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING, false)
         								.addComponent(lblDirectoryPDF, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         								.addComponent(lblOccurrences, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 347, GroupLayout.PREFERRED_SIZE)
         								.addComponent(lblTotalWords, GroupLayout.PREFERRED_SIZE, 222, GroupLayout.PREFERRED_SIZE))
-        							.addPreferredGap(ComponentPlacement.RELATED, 580, Short.MAX_VALUE)
+        							.addPreferredGap(ComponentPlacement.RELATED, 670, Short.MAX_VALUE)
         							.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
         								.addComponent(btnDirectoryChooser)
         								.addComponent(wordsNumberTextField, 134, 134, 134)
         								.addGroup(gl_panel.createSequentialGroup()
         									.addComponent(counterWords, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         									.addPreferredGap(ComponentPlacement.RELATED))))
-        						.addGroup(Alignment.LEADING, gl_panel.createSequentialGroup()
+        						.addGroup(gl_panel.createSequentialGroup()
         							.addComponent(lblFileToIgnore, GroupLayout.PREFERRED_SIZE, 492, GroupLayout.PREFERRED_SIZE)
-        							.addPreferredGap(ComponentPlacement.RELATED, 475, Short.MAX_VALUE)
+        							.addPreferredGap(ComponentPlacement.RELATED, 565, Short.MAX_VALUE)
         							.addComponent(btnToIgnoreFileChooser)))
         					.addGap(10)))
         			.addContainerGap())
@@ -182,9 +175,7 @@ public class ShowGUI extends JFrame implements ActionListener {
         				.addComponent(lblFileToIgnore)
         				.addComponent(btnToIgnoreFileChooser))
         			.addGap(18)
-        			.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(lblErrorRequiredField)
-        				.addComponent(chckbxSplitter))
+        			.addComponent(lblErrorRequiredField)
         			.addGap(34)
         			.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
         				.addComponent(lblTotalWords)
@@ -195,7 +186,7 @@ public class ShowGUI extends JFrame implements ActionListener {
         			.addComponent(lblShowOccurrences, GroupLayout.PREFERRED_SIZE, 95, GroupLayout.PREFERRED_SIZE)
         			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(lblChrono)
-        			.addPreferredGap(ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+        			.addPreferredGap(ComponentPlacement.RELATED, 132, Short.MAX_VALUE)
         			.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
         				.addComponent(btnStop)
         				.addComponent(btnStart))
@@ -227,7 +218,6 @@ public class ShowGUI extends JFrame implements ActionListener {
             if (checkRequiredFieldIsSet()) {
                 controller.setNumberOfWords(Integer.parseInt(wordsNumberTextField.getText()));
                 controller.notifyStarted();
-                controller.setSplit(chckbxSplitter.isSelected());
                 btnStart.setEnabled(false);
                 btnStop.setEnabled(true);
                 lblErrorRequiredField.setVisible(false);
