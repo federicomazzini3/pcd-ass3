@@ -41,11 +41,6 @@ public class Generator extends AbstractBehavior<Generator.Command> {
         }
     }
 
-    public static class Die implements Command {
-
-        public Die(){}
-    }
-
     private ArrayList<ActorRef<PdfAnalyzer.Command>> analyzers;
     private final ActorRef<Ignorer.Command> ignorer;
 
@@ -70,7 +65,6 @@ public class Generator extends AbstractBehavior<Generator.Command> {
         return newReceiveBuilder()
                 .onMessage(Generator.Discovery.class, this::onStartDiscovery)
                 .onMessage(Generator.ToIgnoreWords.class, this::onToIgnoreWords)
-                .onMessage(Generator.Die.class, this::onDie)
                 .build();
     }
 
@@ -96,6 +90,7 @@ public class Generator extends AbstractBehavior<Generator.Command> {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        discovery.replyTo.tell(new Collecter.Finished());
         log("Finito");
         //return Behaviors.receive(Generator.Command.class).onMessage(Generator.ToIgnoreWords.class, this::onToIgnoreWords).build();
         return this;
@@ -110,14 +105,6 @@ public class Generator extends AbstractBehavior<Generator.Command> {
         for(ActorRef<PdfAnalyzer.Command> analyzer : analyzers){
         }
         return this;
-    }
-
-    private Behavior<Command> onDie(Die die) {
-        for(ActorRef<PdfAnalyzer.Command> item : analyzers){
-            item.tell(new PdfAnalyzer.Die());
-            Behaviors.stopped();
-        }
-        return Behaviors.stopped();
     }
 
     private File toFile(Path path) {

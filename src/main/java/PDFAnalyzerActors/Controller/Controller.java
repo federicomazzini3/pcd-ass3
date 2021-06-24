@@ -1,6 +1,7 @@
 package PDFAnalyzerActors.Controller;
 
 import PDFAnalyzerActors.Actors.AnalyzerMain;
+import PDFAnalyzerActors.Model.Chrono;
 import PDFAnalyzerActors.View.View;
 import akka.actor.typed.ActorSystem;
 
@@ -10,8 +11,10 @@ public class Controller {
     private String toIgnoreFilePath;
     private int wordsToRetrieve;
     private  ActorSystem<AnalyzerMain.Command> analyzerMain;
+    private Chrono time;
 
     public Controller() {
+        time = new Chrono();
     }
 
     public synchronized void setView(View view) {
@@ -31,13 +34,14 @@ public class Controller {
     }
     
     public synchronized void notifyStarted() {
-        analyzerMain = ActorSystem.create(AnalyzerMain.create(view, wordsToRetrieve), "master");
+        time.start();
+        analyzerMain = ActorSystem.create(AnalyzerMain.create(view, wordsToRetrieve, time), "master");
         analyzerMain.tell(new AnalyzerMain.ToIgnore(toIgnoreFilePath));
         analyzerMain.tell(new AnalyzerMain.Discovery(directoryPdf, wordsToRetrieve));
     }
 
     public synchronized void notifyStopped() {
+        time.stop();
         analyzerMain.terminate();
-        analyzerMain.tell(new AnalyzerMain.Die());
     }
 }

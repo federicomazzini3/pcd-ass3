@@ -1,5 +1,6 @@
 package PDFAnalyzerActors.Actors;
 
+import PDFAnalyzerActors.Model.Chrono;
 import PDFAnalyzerActors.View.View;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
@@ -37,24 +38,20 @@ public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
         }
     }
 
-    public static class Die implements Command {
-        public Die(){}
-    }
-
     private final ActorRef<Ignorer.Command> ignorer;
     private final ActorRef<Generator.Command> generator;
     private final ActorRef<Collecter.Command> collecter;
 
     /** Factory method e costruttore */
-    public static Behavior<Command> create(View view, int wordsToRetrieve) {
-        return Behaviors.setup(context -> new AnalyzerMain(context, view, wordsToRetrieve));
+    public static Behavior<Command> create(View view, int wordsToRetrieve, Chrono time) {
+        return Behaviors.setup(context -> new AnalyzerMain(context, view, wordsToRetrieve, time));
     }
 
-    private AnalyzerMain(ActorContext<Command> context, View view, int wordsToRetrieve) {
+    private AnalyzerMain(ActorContext<Command> context, View view, int wordsToRetrieve, Chrono time) {
         super(context);
         ignorer = context.spawn(Ignorer.create(), "ignorer");
         generator = context.spawn(Generator.create(ignorer), "generator");
-        collecter = context.spawn(Collecter.create(wordsToRetrieve, view), "collecter");
+        collecter = context.spawn(Collecter.create(wordsToRetrieve, view, time), "collecter");
     }
 
     /** Receive dei messaggi */
@@ -63,7 +60,6 @@ public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
         return newReceiveBuilder()
                 .onMessage(AnalyzerMain.ToIgnore.class, this::onStartToIgnoreWords)
                 .onMessage(AnalyzerMain.Discovery.class, this::onStartAnalyze)
-                .onMessage(AnalyzerMain.Die.class, this::onDie)
                 .build();
     }
 
@@ -76,13 +72,6 @@ public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
     private Behavior<Command> onStartAnalyze(Discovery discovery) {
         generator.tell(new Generator.Discovery(discovery.directoryPath, discovery.wordsToRetrieve, collecter));
         return Behaviors.same();
-    }
-
-    private Behavior<Command> onDie(Die die) {
-        ignorer.tell(new Ignorer.Die());
-        generator.tell(new Generator.Die());
-        collecter.tell(new Collecter.Die());
-        return Behaviors.stopped();
     }
 
 }

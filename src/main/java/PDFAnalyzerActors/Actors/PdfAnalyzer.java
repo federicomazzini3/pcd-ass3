@@ -28,10 +28,6 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Command> {
         }
     }
 
-    public static class Die implements Command{
-        public Die(){}
-    }
-
     private ArrayList<ActorRef<TextAnalyzer.Command>> analyzers;
     private final ActorRef<Ignorer.Command> ignorer;
 
@@ -53,7 +49,6 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Command> {
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(PdfAnalyzer.Pdf.class, this::onStartAnalyze)
-                .onMessage(PdfAnalyzer.Die.class, this::onDie)
                 .build();
     }
 
@@ -83,14 +78,6 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Command> {
             e.printStackTrace();
         }
         return this;
-    }
-
-    private Behavior<Command> onDie(Die die) {
-        for(ActorRef<TextAnalyzer.Command> item : analyzers){
-            item.tell(new TextAnalyzer.Die());
-            Behaviors.stopped();
-        }
-        return Behaviors.stopped();
     }
 
     public void log(String s) {

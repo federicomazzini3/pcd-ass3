@@ -1,5 +1,6 @@
 package PDFAnalyzerActors.Actors;
 
+import PDFAnalyzerActors.Model.Chrono;
 import PDFAnalyzerActors.Model.Occurrence;
 import PDFAnalyzerActors.View.View;
 import akka.actor.typed.Behavior;
@@ -26,29 +27,31 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
         }
     }
 
-public static class Die implements Command {
 
-        public Die(){}
+    public static class Finished implements Command {
+        public Finished(){}
     }
 
     private final View view;
     private final int wordsToRetrieve;
     private Map<String, Integer> occurrences;
     private int processedWords;
+    private Chrono time;
 
     /**
      * Factory method e costruttore
      */
-    public static Behavior<Collecter.Command> create(int wordsToRetrieve, View view) {
-        return Behaviors.setup(context -> new Collecter(context, wordsToRetrieve, view));
+    public static Behavior<Collecter.Command> create(int wordsToRetrieve, View view, Chrono time) {
+        return Behaviors.setup(context -> new Collecter(context, wordsToRetrieve, view, time));
     }
 
-    private Collecter(ActorContext<Collecter.Command> context, int wordsToRetrieve, View view) {
+    private Collecter(ActorContext<Collecter.Command> context, int wordsToRetrieve, View view, Chrono time) {
         super(context);
         this.view = view;
         this.wordsToRetrieve = wordsToRetrieve;
         this.occurrences = new HashMap<>();
         this.processedWords = 0;
+        this.time = time;
         log("Creazione");
     }
 
@@ -56,8 +59,13 @@ public static class Die implements Command {
     public Receive<Collecter.Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(Collecter.Collect.class, this::onCollect)
-                .onMessage(Collecter.Die.class, this::onDie)
+                .onMessage(Collecter.Finished.class, this::onFinished)
                 .build();
+    }
+
+    private Behavior<Command> onFinished(Finished finish) {
+        view.updateComplete(time.getTime());
+        return this;
     }
 
     private Behavior<Command> onCollect(Collecter.Collect collect) {
@@ -78,10 +86,6 @@ public static class Die implements Command {
                 .collect(Collectors.toList());
     }
 
-    private Behavior<Command> onDie(Die die) {
-        return Behaviors.stopped();
-    }
-
     private void updateView(List<Occurrence> occurrences, int processedWords) {
         view.updateOccurrencesLabel(occurrences);
         view.updateCountValue(processedWords);
@@ -90,4 +94,5 @@ public static class Die implements Command {
     public void log(Object s){
         System.out.println("[" + Thread.currentThread().getName() + "] " + "[Collecter] " + s);
     }
+
 }
