@@ -28,27 +28,39 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Command> {
         }
     }
 
+    public static class Finished implements Command{
+        private ActorRef<TextAnalyzer.Command> textAnalyzerToRemove;
+        public Finished(ActorRef<TextAnalyzer.Command>  textAnalyzerToRemove){
+            this. textAnalyzerToRemove =  textAnalyzerToRemove;
+        }
+    }
+
     private ArrayList<ActorRef<TextAnalyzer.Command>> analyzers;
     private final ActorRef<Ignorer.Command> ignorer;
+    private final ActorRef<PdfAnalyzer.Command> me;
+    private final ActorRef<Generator.Command> gen;
 
     /**
      * Factory method e costruttore
      */
-    public static Behavior<Command> create(ActorRef<Ignorer.Command> ignorer) {
-        return Behaviors.setup(context -> new PdfAnalyzer(context, ignorer));
+    public static Behavior<Command> create(ActorRef<Ignorer.Command> ignorer, ActorRef<Generator.Command> gen) {
+        return Behaviors.setup(context -> new PdfAnalyzer(context, ignorer, gen));
     }
 
-    private PdfAnalyzer(ActorContext<Command> context, ActorRef<Ignorer.Command> ignorer) {
+    private PdfAnalyzer(ActorContext<Command> context, ActorRef<Ignorer.Command> ignorer, ActorRef<Generator.Command> gen) {
         super(context);
         this.analyzers = new ArrayList<>();
         this.ignorer = ignorer;
         log("Creazione");
+        this.me = getContext().getSelf();
+        this.gen = gen;
     }
 
     @Override
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(PdfAnalyzer.Pdf.class, this::onStartAnalyze)
+                .onMessage(PdfAnalyzer.Finished.class, this::onFinishedTextAnalyzer)
                 .build();
     }
 
@@ -65,17 +77,25 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Command> {
                 String pageText = stripper.getText(page);
                 log("Splitto la pagina: " + i + " di " + currentFile);
                 log("Metto in coda il task per la pagina: " + i + " del file " + currentFile);
-                ActorRef<TextAnalyzer.Command> analyzer = getContext().spawn(TextAnalyzer.create(ignorer), "TEXTAnalyzer" + i);
+                ActorRef<TextAnalyzer.Command> analyzer = getContext().spawn(TextAnalyzer.create(ignorer, me), "TEXTAnalyzer" + i);
                 analyzers.add(analyzer);
-                analyzer.tell(new TextAnalyzer.Text(pageText, i, currentFile, pdf.replyTo));
+                analyzer.tell(new TextAnalyzer.Text(pageText, i, currentFile, pdf.replyTo, analyzer));
                 log("Invio per la pagina " + i + " del file " + currentFile + " fatto");
                 i++;
                 page.close();
             }
-
             document.close();
+           // gen.tell(new Generator.Finished(pdf.istanceOfPdfAnalyzer));
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        return this;
+    }
+
+    private Behavior<Command> onFinishedTextAnalyzer(Finished finished) {
+        analyzers.remove(finished.textAnalyzerToRemove);
+        if(analyzers.isEmpty()){
+            gen.tell(new Generator.Finished(me));
         }
         return this;
     }

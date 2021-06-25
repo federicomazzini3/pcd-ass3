@@ -18,12 +18,14 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
         private int currentPage;
         private String currentFile;
         private final ActorRef<Collecter.Command> replyTo;
+        private final ActorRef<TextAnalyzer.Command> istanceOfMe;
 
-        public Text(String text, int currentPage, String currentFile, ActorRef<Collecter.Command> replyTo){
+        public Text(String text, int currentPage, String currentFile, ActorRef<Collecter.Command> replyTo,  ActorRef<TextAnalyzer.Command> istanceOfMe){
             this.text = text;
             this.currentPage = currentPage;
             this.currentFile = currentFile;
             this.replyTo = replyTo;
+            this.istanceOfMe = istanceOfMe;
         }
     }
 
@@ -36,23 +38,25 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
 
     private HashSet<String> toIgnoreWords;
     private final StashBuffer<Command> buffer;
+    private final ActorRef<PdfAnalyzer.Command> pdfRef;
 
     /** Factory method e costruttore */
-    public static Behavior<TextAnalyzer.Command> create(ActorRef<Ignorer.Command> ignorer) {
+    public static Behavior<TextAnalyzer.Command> create(ActorRef<Ignorer.Command> ignorer, ActorRef<PdfAnalyzer.Command> pdfRef) {
         //return Behaviors.setup(context -> new TextAnalyzer(context, ignorer));
         return Behaviors.withStash(
                 100,
                 stash ->
                         Behaviors.setup(
                                 ctx -> {
-                                    return new TextAnalyzer(ctx, stash, ignorer);
+                                    return new TextAnalyzer(ctx, stash, ignorer, pdfRef);
                                 }));
     }
 
-    private TextAnalyzer(ActorContext<TextAnalyzer.Command> context, StashBuffer<Command> buffer, ActorRef<Ignorer.Command> ignorer) {
+    private TextAnalyzer(ActorContext<TextAnalyzer.Command> context, StashBuffer<Command> buffer, ActorRef<Ignorer.Command> ignorer, ActorRef<PdfAnalyzer.Command> pdfRef) {
         super(context);
         this.buffer = buffer;
         ignorer.tell(new Ignorer.GetToIgnoreWords(context.getSelf()));
+        this.pdfRef = pdfRef;
         log("Creazione TextAnalyzer");
     }
 
@@ -97,6 +101,8 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
         //counter.mergeOccurrence(localCounter, processedWords);
         //ResultAnalyzeTask task = new ResultAnalyzeTask(counter, wordsToRetrieve, view, stopFlag);
         text.replyTo.tell(new Collecter.Collect(localCounter, processedWords));
+        this.pdfRef.tell(new PdfAnalyzer.Finished(text.istanceOfMe));
+
         return this;
     }
 

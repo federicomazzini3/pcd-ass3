@@ -41,20 +41,31 @@ public class Generator extends AbstractBehavior<Generator.Command> {
         }
     }
 
+    public static class Finished implements Command{
+        private final ActorRef<PdfAnalyzer.Command> istanceOfPdf;
+        public Finished(ActorRef<PdfAnalyzer.Command> istanceOfPdf){
+            this.istanceOfPdf = istanceOfPdf;
+        }
+    }
+
     private ArrayList<ActorRef<PdfAnalyzer.Command>> analyzers;
     private final ActorRef<Ignorer.Command> ignorer;
+    private final ActorRef<Generator.Command> me;
+    private final ActorRef<Collecter.Command> collecter;
 
     /**
      * Factory method e costruttore
      */
-    public static Behavior<Command> create(ActorRef<Ignorer.Command> ignorer) {
-        return Behaviors.setup(context -> new Generator(context, ignorer));
+    public static Behavior<Command> create(ActorRef<Ignorer.Command> ignorer, ActorRef<Collecter.Command> collecter) {
+        return Behaviors.setup(context -> new Generator(context, ignorer, collecter));
     }
 
-    private Generator(ActorContext<Command> context, ActorRef<Ignorer.Command> ignorer) {
+    private Generator(ActorContext<Command> context, ActorRef<Ignorer.Command> ignorer, ActorRef<Collecter.Command> collecter) {
         super(context);
         analyzers = new ArrayList<>();
         this.ignorer = ignorer;
+        this.me = getContext().getSelf();
+        this.collecter = collecter;
     }
 
     /**
@@ -65,6 +76,7 @@ public class Generator extends AbstractBehavior<Generator.Command> {
         return newReceiveBuilder()
                 .onMessage(Generator.Discovery.class, this::onStartDiscovery)
                 .onMessage(Generator.ToIgnoreWords.class, this::onToIgnoreWords)
+                .onMessage(Generator.Finished.class, this::onFinished)
                 .build();
     }
 
@@ -82,7 +94,7 @@ public class Generator extends AbstractBehavior<Generator.Command> {
                     .map(this::toFile)
                     .forEach(doc -> {
                         log("CREO L'ATTORE PER IL FILE: " + doc.getName());
-                        ActorRef<PdfAnalyzer.Command> analyzer = getContext().spawn(PdfAnalyzer.create(ignorer), "PDFAnalyzer" + i);
+                        ActorRef<PdfAnalyzer.Command> analyzer = getContext().spawn(PdfAnalyzer.create(ignorer, me), "PDFAnalyzer" + i);
                         analyzers.add(analyzer);
                         analyzer.tell(new PdfAnalyzer.Pdf(doc, discovery.replyTo));
                         i.getAndIncrement();
@@ -90,11 +102,20 @@ public class Generator extends AbstractBehavior<Generator.Command> {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        discovery.replyTo.tell(new Collecter.Finished());
+        //discovery.replyTo.tell(new Collecter.Finished());
         log("Finito");
         //return Behaviors.receive(Generator.Command.class).onMessage(Generator.ToIgnoreWords.class, this::onToIgnoreWords).build();
         return this;
     }
+
+    private Behavior<Command> onFinished(Finished finish) {
+        analyzers.remove(finish.istanceOfPdf);
+        if(analyzers.isEmpty()){ //quando la lista dei pdf è vuota manda un messaggio di terminazione al collecter
+            collecter.tell(new Collecter.Finished());
+        }
+        return this;
+    }
+
 
     private Behavior<Command> onToIgnoreWords(Generator.ToIgnoreWords toIgnoreWords) {
         //#create-actors

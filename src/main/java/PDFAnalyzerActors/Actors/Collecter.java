@@ -27,7 +27,6 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
         }
     }
 
-
     public static class Finished implements Command {
         public Finished(){}
     }
@@ -63,11 +62,6 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
                 .build();
     }
 
-    private Behavior<Command> onFinished(Finished finish) {
-        view.updateComplete(time.getTime());
-        return this;
-    }
-
     private Behavior<Command> onCollect(Collecter.Collect collect) {
         log("collect");
         log(collect.occurrences);
@@ -89,6 +83,11 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
     private void updateView(List<Occurrence> occurrences, int processedWords) {
         view.updateOccurrencesLabel(occurrences);
         view.updateCountValue(processedWords);
+    }
+
+    private Behavior<Command> onFinished(Finished finish) {
+        view.updateComplete(time.getTime()/1000.00);
+        return this;
     }
 
     public void log(Object s){

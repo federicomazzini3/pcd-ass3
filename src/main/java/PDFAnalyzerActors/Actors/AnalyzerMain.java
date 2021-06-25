@@ -50,8 +50,8 @@ public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
     private AnalyzerMain(ActorContext<Command> context, View view, int wordsToRetrieve, Chrono time) {
         super(context);
         ignorer = context.spawn(Ignorer.create(), "ignorer");
-        generator = context.spawn(Generator.create(ignorer), "generator");
         collecter = context.spawn(Collecter.create(wordsToRetrieve, view, time), "collecter");
+        generator = context.spawn(Generator.create(ignorer, collecter), "generator");
     }
 
     /** Receive dei messaggi */
