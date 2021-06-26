@@ -1,7 +1,8 @@
 package PDFAnalyzerActors.View;
 
-import PDFAnalyzerActors.Controller.Controller;
+import PDFAnalyzerActors.Actors.ViewActor;
 import PDFAnalyzerActors.Model.Occurrence;
+import akka.actor.typed.ActorRef;
 
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
@@ -30,9 +31,12 @@ public class ShowGUI extends JFrame implements ActionListener {
     private final JTextField wordsNumberTextField;
     private final JLabel lblShowOccurrences;
     private boolean directoryIsSet;
-    private Controller controller;
     private JTextField counterWords;
     private JLabel lblChrono;
+    private String directoryPdf;
+    private String toIgnoreFilePath;
+    private int wordsToRetrieve;
+    private ActorRef<ViewActor.Command> viewActor;
 
     private static final String TITLE = "PDF Analyzer";
     private static final String DIR_CHOOSER_LBL = "Directory PDF";
@@ -48,9 +52,9 @@ public class ShowGUI extends JFrame implements ActionListener {
         DIRPDF, TOIGNFILE
     }
 
-    public ShowGUI(Controller controller) {
+    public ShowGUI(ActorRef<ViewActor.Command> viewActor) {
 
-        this.controller = controller;
+        this.viewActor = viewActor;
 
         setFont(new Font("Tahoma", Font.PLAIN, 16));
         setTitle(TITLE);
@@ -216,8 +220,8 @@ public class ShowGUI extends JFrame implements ActionListener {
         Object src = ev.getSource();
         if (src == btnStart) {
             if (checkRequiredFieldIsSet()) {
-                controller.setNumberOfWords(Integer.parseInt(wordsNumberTextField.getText()));
-                controller.notifyStarted();
+                wordsToRetrieve = Integer.parseInt(wordsNumberTextField.getText());
+                this.viewActor.tell(new ViewActor.Start(this.directoryPdf, this.toIgnoreFilePath, this.wordsToRetrieve));
                 btnStart.setEnabled(false);
                 btnStop.setEnabled(true);
                 lblErrorRequiredField.setVisible(false);
@@ -226,7 +230,7 @@ public class ShowGUI extends JFrame implements ActionListener {
                 lblErrorRequiredField.setVisible(true);
             }
         } else if (src == btnStop) {
-            controller.notifyStopped();
+            this.viewActor.tell(new ViewActor.Stop());
             btnStart.setEnabled(true);
             btnStop.setEnabled(false);
             log("PREMUTO STOP");
@@ -247,7 +251,8 @@ public class ShowGUI extends JFrame implements ActionListener {
                 int result = fileChooser.showOpenDialog(this);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = fileChooser.getSelectedFile();
-                    controller.setDirectoryPdf(selectedFile.getAbsolutePath());
+                    //controller.setDirectoryPdf(selectedFile.getAbsolutePath());
+                    this.directoryPdf = selectedFile.getAbsolutePath();
                     lblDirectoryPDF.setText(selectedFile.getAbsolutePath());
                     this.directoryIsSet = true;
                 }
@@ -258,7 +263,8 @@ public class ShowGUI extends JFrame implements ActionListener {
                 int result = fileChooser.showOpenDialog(this);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = fileChooser.getSelectedFile();
-                    controller.setToIgnoreFile(selectedFile.getAbsolutePath());
+                    //controller.setToIgnoreFile(selectedFile.getAbsolutePath());
+                    this.toIgnoreFilePath = selectedFile.getAbsolutePath();
                     lblFileToIgnore.setText(selectedFile.getAbsolutePath());
                 }
             }
@@ -283,9 +289,9 @@ public class ShowGUI extends JFrame implements ActionListener {
         });
     }
 
-    public void updateComplete(double time) {
+    public void updateComplete(double finish) {
         SwingUtilities.invokeLater(() -> {
-            lblChrono.setText("Completato in: " + time + " secondi");
+            lblChrono.setText("Completato in: " + finish + " secondi");
             btnStart.setEnabled(true);
             btnStop.setEnabled(false);
         });

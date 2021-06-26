@@ -13,13 +13,7 @@ public class Ignorer extends AbstractBehavior<Ignorer.Command> {
 
     public interface Command{}
 
-    public static class GenerateToIgnoreWords implements Command{
-        private String toIgnoreFilePath;
-
-        public GenerateToIgnoreWords(String directoryPath){
-            this.toIgnoreFilePath = directoryPath;
-        }
-    }
+    public static class GenerateToIgnoreWords implements Command{ }
 
     public static class GetToIgnoreWords implements Command{
         ActorRef<TextAnalyzer.Command> replyTo;
@@ -29,24 +23,27 @@ public class Ignorer extends AbstractBehavior<Ignorer.Command> {
         }
     }
 
+    private final String toIgnoreFilePath;
     private HashSet<String> toIgnoreWords;
     private final StashBuffer<Ignorer.Command> buffer;
 
     /** Factory method e costruttore */
-    public static Behavior<Command> create() {
+    public static Behavior<Command> create(String toIgnoreFilePath) {
         //return Behaviors.setup(Ignorer::new);
         return Behaviors.withStash(
                 100,
                 stash ->
                         Behaviors.setup(
                                 ctx -> {
-                                    return new Ignorer(ctx, stash);
+                                    return new Ignorer(ctx, stash, toIgnoreFilePath);
                                 }));
     }
 
-    private Ignorer(ActorContext<Command> context, StashBuffer<Ignorer.Command> buffer) {
+    private Ignorer(ActorContext<Command> context, StashBuffer<Ignorer.Command> buffer, String toIgnoreFilePath) {
         super(context);
         this.buffer = buffer;
+        this.toIgnoreFilePath = toIgnoreFilePath;
+        context.getSelf().tell(new GenerateToIgnoreWords());
     }
 
     @Override
@@ -61,7 +58,7 @@ public class Ignorer extends AbstractBehavior<Ignorer.Command> {
         try {
             this.toIgnoreWords = new HashSet<>();
             log("Cerco file");
-            File file = new File(generateToIgnoreWords.toIgnoreFilePath);
+            File file = new File(this.toIgnoreFilePath);
 
             if (file != null) {
                 Scanner input = new Scanner(file);

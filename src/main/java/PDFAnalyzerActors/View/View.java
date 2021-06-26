@@ -11,7 +11,7 @@ public class View {
     private ShowGUI gui;
 
     public View(Controller controller) {
-        this.gui = new ShowGUI(controller);
+        //this.gui = new ShowGUI(controller);
     }
 
     public synchronized void updateCountValue(int value) {

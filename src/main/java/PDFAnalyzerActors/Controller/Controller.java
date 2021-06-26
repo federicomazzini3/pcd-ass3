@@ -10,7 +10,7 @@ public class Controller {
     private String directoryPdf;
     private String toIgnoreFilePath;
     private int wordsToRetrieve;
-    private  ActorSystem<AnalyzerMain.Command> analyzerMain;
+    private ActorSystem<AnalyzerMain.Command> analyzerMain;
     private Chrono time;
 
     public Controller() {
@@ -35,9 +35,9 @@ public class Controller {
     
     public synchronized void notifyStarted() {
         time.start();
-        analyzerMain = ActorSystem.create(AnalyzerMain.create(view, wordsToRetrieve, time), "master");
-        analyzerMain.tell(new AnalyzerMain.ToIgnore(toIgnoreFilePath));
-        analyzerMain.tell(new AnalyzerMain.Discovery(directoryPdf, wordsToRetrieve));
+        //analyzerMain = ActorSystem.create(AnalyzerMain.create(view, wordsToRetrieve, time), "master");
+        //analyzerMain.tell(new AnalyzerMain.ToIgnore(toIgnoreFilePath));
+        //analyzerMain.tell(new AnalyzerMain.Discovery(directoryPdf, wordsToRetrieve));
     }
 
     public synchronized void notifyStopped() {

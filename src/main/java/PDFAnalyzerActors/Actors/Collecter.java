@@ -1,8 +1,7 @@
 package PDFAnalyzerActors.Actors;
 
-import PDFAnalyzerActors.Model.Chrono;
 import PDFAnalyzerActors.Model.Occurrence;
-import PDFAnalyzerActors.View.View;
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -31,26 +30,25 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
         public Finished(){}
     }
 
-    private final View view;
     private final int wordsToRetrieve;
     private Map<String, Integer> occurrences;
     private int processedWords;
-    private Chrono time;
+    private final ActorRef<ViewActor.Command> view;
+
 
     /**
      * Factory method e costruttore
      */
-    public static Behavior<Collecter.Command> create(int wordsToRetrieve, View view, Chrono time) {
-        return Behaviors.setup(context -> new Collecter(context, wordsToRetrieve, view, time));
+    public static Behavior<Collecter.Command> create(int wordsToRetrieve, ActorRef<ViewActor.Command> view) {
+        return Behaviors.setup(context -> new Collecter(context, wordsToRetrieve, view));
     }
 
-    private Collecter(ActorContext<Collecter.Command> context, int wordsToRetrieve, View view, Chrono time) {
+    private Collecter(ActorContext<Collecter.Command> context, int wordsToRetrieve, ActorRef<ViewActor.Command> view) {
         super(context);
-        this.view = view;
         this.wordsToRetrieve = wordsToRetrieve;
         this.occurrences = new HashMap<>();
         this.processedWords = 0;
-        this.time = time;
+        this.view = view;
         log("Creazione");
     }
 
@@ -81,12 +79,13 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
     }
 
     private void updateView(List<Occurrence> occurrences, int processedWords) {
-        view.updateOccurrencesLabel(occurrences);
-        view.updateCountValue(processedWords);
+        view.tell(new ViewActor.Occurrences(occurrences));
+        view.tell(new ViewActor.ProcessedWords(processedWords));
+
     }
 
     private Behavior<Command> onFinished(Finished finish) {
-        view.updateComplete(time.getTime()/1000.00);
+        view.tell(new ViewActor.Finish());
         return this;
     }
 
