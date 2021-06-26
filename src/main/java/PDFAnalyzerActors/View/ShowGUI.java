@@ -222,10 +222,6 @@ public class ShowGUI extends JFrame implements ActionListener {
             if (checkRequiredFieldIsSet()) {
                 wordsToRetrieve = Integer.parseInt(wordsNumberTextField.getText());
                 this.viewActor.tell(new ViewActor.Start(this.directoryPdf, this.toIgnoreFilePath, this.wordsToRetrieve));
-                btnStart.setEnabled(false);
-                btnStop.setEnabled(true);
-                lblErrorRequiredField.setVisible(false);
-                lblChrono.setText("");
             } else {
                 lblErrorRequiredField.setVisible(true);
             }
@@ -241,6 +237,13 @@ public class ShowGUI extends JFrame implements ActionListener {
         }
     }
 
+    public void start(){
+        btnStart.setEnabled(false);
+        btnStop.setEnabled(true);
+        lblErrorRequiredField.setVisible(false);
+        lblChrono.setText("");
+    }
+
     public void showPopup(Enum<Choice> choice) {
         SwingUtilities.invokeLater(() -> {
             JFileChooser fileChooser = new JFileChooser();
@@ -251,7 +254,6 @@ public class ShowGUI extends JFrame implements ActionListener {
                 int result = fileChooser.showOpenDialog(this);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = fileChooser.getSelectedFile();
-                    //controller.setDirectoryPdf(selectedFile.getAbsolutePath());
                     this.directoryPdf = selectedFile.getAbsolutePath();
                     lblDirectoryPDF.setText(selectedFile.getAbsolutePath());
                     this.directoryIsSet = true;
@@ -263,7 +265,6 @@ public class ShowGUI extends JFrame implements ActionListener {
                 int result = fileChooser.showOpenDialog(this);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = fileChooser.getSelectedFile();
-                    //controller.setToIgnoreFile(selectedFile.getAbsolutePath());
                     this.toIgnoreFilePath = selectedFile.getAbsolutePath();
                     lblFileToIgnore.setText(selectedFile.getAbsolutePath());
                 }

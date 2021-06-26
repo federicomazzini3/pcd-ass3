@@ -1,16 +1,11 @@
 package PDFAnalyzerActors.Actors;
-
-import PDFAnalyzerActors.Model.Chrono;
-import PDFAnalyzerActors.Model.Occurrence;
-import PDFAnalyzerActors.View.View;
 import akka.actor.typed.ActorRef;
+import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-
-import java.util.List;
 
 /**
     Esegue lo spawn degli attori ignorer, generator e sink

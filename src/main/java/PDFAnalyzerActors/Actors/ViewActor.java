@@ -79,8 +79,14 @@ public class ViewActor extends AbstractBehavior<ViewActor.Command> {
     }
 
     private Behavior<Command> onStartProgram(Start start) {
-        chrono.start();
-        this.analyzerMain = getContext().spawn(AnalyzerMain.create(start.directoryPdf, start.toIgnoreFilePath, start.wordsToRetrieve, getContext().getSelf()), "AnalyzerMain");
+        /*TODO: implementare il reception per cercare di capire se tra gli attori che sono stati spawnati
+        * esiste gia un attore chiamato "AnalazyerMain"; se esiste già allora Start non deve fare nulla;
+        * nel caso in cui non ci sia, crearlo normalmente
+        * if(!exist(AnalyzerMain)) {*/
+            chrono.start();
+            this.analyzerMain = getContext().spawn(AnalyzerMain.create(start.directoryPdf, start.toIgnoreFilePath, start.wordsToRetrieve, getContext().getSelf()), "AnalyzerMain");
+            this.gui.start();
+       // }
         return this;
     }
 
