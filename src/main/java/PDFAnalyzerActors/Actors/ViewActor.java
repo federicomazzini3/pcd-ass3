@@ -15,43 +15,45 @@ import java.util.List;
 
 public class ViewActor extends AbstractBehavior<ViewActor.Command> {
 
-    public interface Command{}
+    public interface Command {}
 
-    public static class Start implements Command{
+    public static class Start implements Command {
         private final String directoryPdf;
         private final String toIgnoreFilePath;
         private final int wordsToRetrieve;
 
-        public Start(String directoryPdf, String toIgnoreFilePath, int wordsToRetrieve){
+        public Start(String directoryPdf, String toIgnoreFilePath, int wordsToRetrieve) {
             this.directoryPdf = directoryPdf;
             this.toIgnoreFilePath = toIgnoreFilePath;
             this.wordsToRetrieve = wordsToRetrieve;
         }
     }
 
-    public static class Stop implements Command{}
+    public static class Stop implements Command {}
 
-    public static class Occurrences implements Command{
+    public static class Occurrences implements Command {
         private final List<Occurrence> occurrences;
 
-        public Occurrences(List<Occurrence> occurrences){
+        public Occurrences(List<Occurrence> occurrences) {
             this.occurrences = occurrences;
         }
     }
 
-    public static class ProcessedWords implements Command{
+    public static class ProcessedWords implements Command {
         private final int processedWords;
 
-        public ProcessedWords(int processedWords){
+        public ProcessedWords(int processedWords) {
             this.processedWords = processedWords;
         }
     }
 
-    public static class Finish implements Command{}
+    public static class Finish implements Command {
+    }
 
     private final ShowGUI gui;
     private final Chrono chrono;
     private ActorRef<AnalyzerMain.Command> analyzerMain;
+    private int i = 0;
 
     /**
      * Factory method e costruttore
@@ -79,19 +81,15 @@ public class ViewActor extends AbstractBehavior<ViewActor.Command> {
     }
 
     private Behavior<Command> onStartProgram(Start start) {
-        /*TODO: implementare il reception per cercare di capire se tra gli attori che sono stati spawnati
-        * esiste gia un attore chiamato "AnalazyerMain"; se esiste già allora Start non deve fare nulla;
-        * nel caso in cui non ci sia, crearlo normalmente
-        * if(!exist(AnalyzerMain)) {*/
-            chrono.start();
-            this.analyzerMain = getContext().spawn(AnalyzerMain.create(start.directoryPdf, start.toIgnoreFilePath, start.wordsToRetrieve, getContext().getSelf()), "AnalyzerMain");
-            this.gui.start();
-       // }
+        chrono.start();
+        this.analyzerMain = getContext().spawn(AnalyzerMain.create(start.directoryPdf, start.toIgnoreFilePath, start.wordsToRetrieve, getContext().getSelf()), "AnalyzerMain" + i);
+        this.gui.start();
         return this;
     }
 
     private Behavior<Command> onStopProgram(Stop stop) {
         this.analyzerMain.tell(new AnalyzerMain.Stop());
+        this.i++;
         return this;
     }
 

@@ -18,14 +18,12 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
         private int currentPage;
         private String currentFile;
         private final ActorRef<Collecter.Command> replyTo;
-        private final ActorRef<TextAnalyzer.Command> istanceOfMe;
 
-        public Text(String text, int currentPage, String currentFile, ActorRef<Collecter.Command> replyTo,  ActorRef<TextAnalyzer.Command> istanceOfMe){
+        public Text(String text, int currentPage, String currentFile, ActorRef<Collecter.Command> replyTo){
             this.text = text;
             this.currentPage = currentPage;
             this.currentFile = currentFile;
             this.replyTo = replyTo;
-            this.istanceOfMe = istanceOfMe;
         }
     }
 
@@ -98,10 +96,8 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
         }
         log("Finito di analizzare il testo della pagina");
         log("Mando i risultati al collecter");
-        //counter.mergeOccurrence(localCounter, processedWords);
-        //ResultAnalyzeTask task = new ResultAnalyzeTask(counter, wordsToRetrieve, view, stopFlag);
         text.replyTo.tell(new Collecter.Collect(localCounter, processedWords));
-        this.pdfRef.tell(new PdfAnalyzer.Finished(text.istanceOfMe));
+        this.pdfRef.tell(new PdfAnalyzer.Finished(this.getContext().getSelf()));
 
         return this;
     }

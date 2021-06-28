@@ -62,7 +62,6 @@ public class Collecter extends AbstractBehavior<Collecter.Command> {
 
     private Behavior<Command> onCollect(Collecter.Collect collect) {
         log("collect");
-        log(collect.occurrences);
         collect.occurrences.forEach((k, v) -> this.occurrences.merge(k, v, Integer::sum));
         this.processedWords = this.processedWords + collect.processedWords;
         List<Occurrence> occ = createOccurrencesList(this.occurrences, wordsToRetrieve);

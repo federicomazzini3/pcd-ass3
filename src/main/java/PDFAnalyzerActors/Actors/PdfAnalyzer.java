@@ -79,7 +79,7 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Command> {
                 log("Metto in coda il task per la pagina: " + i + " del file " + currentFile);
                 ActorRef<TextAnalyzer.Command> analyzer = getContext().spawn(TextAnalyzer.create(ignorer, me), "TEXTAnalyzer" + i);
                 analyzers.add(analyzer);
-                analyzer.tell(new TextAnalyzer.Text(pageText, i, currentFile, pdf.replyTo, analyzer));
+                analyzer.tell(new TextAnalyzer.Text(pageText, i, currentFile, pdf.replyTo));
                 log("Invio per la pagina " + i + " del file " + currentFile + " fatto");
                 i++;
                 page.close();

@@ -21,14 +21,6 @@ public class Generator extends AbstractBehavior<Generator.Command> {
 
     public interface Command {};
 
-    public static class ToIgnoreWords implements Command {
-        private HashSet toIgnoreWords;
-
-        public ToIgnoreWords(HashSet toIgnoreWords) {
-            this.toIgnoreWords = toIgnoreWords;
-        }
-    }
-
     public static class Discovery implements Command {
         public final ActorRef<Collecter.Command> replyTo;
 
@@ -38,9 +30,9 @@ public class Generator extends AbstractBehavior<Generator.Command> {
     }
 
     public static class Finished implements Command{
-        private final ActorRef<PdfAnalyzer.Command> istanceOfPdf;
-        public Finished(ActorRef<PdfAnalyzer.Command> istanceOfPdf){
-            this.istanceOfPdf = istanceOfPdf;
+        private final ActorRef<PdfAnalyzer.Command> instanceOfPdf;
+        public Finished(ActorRef<PdfAnalyzer.Command> instanceOfPdf){
+            this.instanceOfPdf = instanceOfPdf;
         }
     }
 
@@ -105,7 +97,7 @@ public class Generator extends AbstractBehavior<Generator.Command> {
     }
 
     private Behavior<Command> onFinished(Finished finish) {
-        analyzers.remove(finish.istanceOfPdf);
+        analyzers.remove(finish.instanceOfPdf);
         if(analyzers.isEmpty()){ //quando la lista dei pdf è vuota manda un messaggio di terminazione al collecter
             collecter.tell(new Collecter.Finished());
         }
