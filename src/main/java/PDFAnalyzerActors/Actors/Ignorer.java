@@ -29,7 +29,6 @@ public class Ignorer extends AbstractBehavior<Ignorer.Command> {
 
     /** Factory method e costruttore */
     public static Behavior<Command> create(String toIgnoreFilePath) {
-        //return Behaviors.setup(Ignorer::new);
         return Behaviors.withStash(
                 100,
                 stash ->
@@ -49,8 +48,8 @@ public class Ignorer extends AbstractBehavior<Ignorer.Command> {
     @Override
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
-                .onMessage(GenerateToIgnoreWords.class, this::onStartToIgnoreWords)
-                .onMessage(Ignorer.Command.class, this::stashOtherCommand)
+                .onMessage(Ignorer.GenerateToIgnoreWords.class, this::onStartToIgnoreWords)
+                .onMessage(Ignorer.GetToIgnoreWords.class, this::stashOtherCommand)
                 .build();
     }
 
@@ -87,7 +86,6 @@ public class Ignorer extends AbstractBehavior<Ignorer.Command> {
     }
 
     private Behavior<Ignorer.Command> stashOtherCommand(Ignorer.Command message) {
-        // stash all other messages for later processing
         buffer.stash(message);
         return Behaviors.same();
     }

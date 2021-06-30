@@ -62,13 +62,12 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
     public Receive<TextAnalyzer.Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(TextAnalyzer.ToIgnoreWords.class, this::onGetToIgnoreWords)
-                .onMessage(TextAnalyzer.Command.class, this::stashOtherCommand)
+                .onMessage(TextAnalyzer.Text.class, this::stashOtherCommand)
                 .build();
     }
 
     private Behavior<Command> onGetToIgnoreWords(TextAnalyzer.ToIgnoreWords toIgnoreWords) {
         this.toIgnoreWords = toIgnoreWords.toIgnoreWords;
-        //return Behaviors.receive(TextAnalyzer.Command.class).onMessage(TextAnalyzer.Text.class, this::onStartAnalyze).build();
         return buffer.unstashAll(Behaviors.receive(TextAnalyzer.Command.class).
                 onMessage(TextAnalyzer.Text.class, this::onStartAnalyze)
                 .build());

@@ -99,13 +99,13 @@ public class ViewActor extends AbstractBehavior<ViewActor.Command> {
     }
 
     private Behavior<Command> updateOccurrencesLabel(Occurrences occurrences) {
-        gui.updateOccurrencesLabel(occurrences.occurrences);
+        this.gui.updateOccurrencesLabel(occurrences.occurrences);
         return this;
     }
 
     private Behavior<Command> onFinish(Finish finish) {
-        gui.updateComplete(chrono.getTime() / 1000.00);
         this.analyzerMain.tell(new AnalyzerMain.Stop());
+        gui.updateComplete(chrono.getTime() / 1000.00);
         return this;
     }
 }

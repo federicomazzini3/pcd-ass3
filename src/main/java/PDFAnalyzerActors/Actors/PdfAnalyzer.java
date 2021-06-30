@@ -38,7 +38,7 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Command> {
     private ArrayList<ActorRef<TextAnalyzer.Command>> analyzers;
     private final ActorRef<Ignorer.Command> ignorer;
     private final ActorRef<PdfAnalyzer.Command> me;
-    private final ActorRef<Generator.Command> gen;
+    private final ActorRef<Generator.Command> generator;
 
     /**
      * Factory method e costruttore
@@ -47,13 +47,13 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Command> {
         return Behaviors.setup(context -> new PdfAnalyzer(context, ignorer, gen));
     }
 
-    private PdfAnalyzer(ActorContext<Command> context, ActorRef<Ignorer.Command> ignorer, ActorRef<Generator.Command> gen) {
+    private PdfAnalyzer(ActorContext<Command> context, ActorRef<Ignorer.Command> ignorer, ActorRef<Generator.Command> generator) {
         super(context);
+        log("Creazione");
         this.analyzers = new ArrayList<>();
         this.ignorer = ignorer;
-        log("Creazione");
+        this.generator = generator;
         this.me = getContext().getSelf();
-        this.gen = gen;
     }
 
     @Override
@@ -95,7 +95,7 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Command> {
     private Behavior<Command> onFinishedTextAnalyzer(Finished finished) {
         analyzers.remove(finished.textAnalyzerToRemove);
         if(analyzers.isEmpty()){
-            gen.tell(new Generator.Finished(me));
+            generator.tell(new Generator.Finished(me));
         }
         return this;
     }
