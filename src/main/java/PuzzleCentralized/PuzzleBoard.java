@@ -38,7 +38,7 @@ public class PuzzleBoard extends JFrame {
         paintPuzzle(board);
     }
 
-    
+    /** Popola una lista di oggetti Tile, i quali sono composti da immagine, posizione originale immagine e posizione corrente immagine*/
     private void createTiles(final String imagePath) {
 		final BufferedImage image;
         
@@ -71,7 +71,8 @@ public class PuzzleBoard extends JFrame {
             }
         }
 	}
-    
+
+	/** Data una collezione di Tile, inserisce al'interno del JPanel board ogni Tile e aggiunge un listener per le eventuali modifiche*/
     private void paintPuzzle(final JPanel board) {
     	board.removeAll();
     	
