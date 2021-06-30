@@ -1,7 +1,8 @@
 package PDFAnalyzerActors.View;
 
-import PDFAnalyzerActors.Controller.Controller;
+import PDFAnalyzerActors.Actors.ViewActor;
 import PDFAnalyzerActors.Model.Occurrence;
+import akka.actor.typed.ActorRef;
 
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
@@ -30,10 +31,12 @@ public class ShowGUI extends JFrame implements ActionListener {
     private final JTextField wordsNumberTextField;
     private final JLabel lblShowOccurrences;
     private boolean directoryIsSet;
-    private Controller controller;
     private JTextField counterWords;
     private JLabel lblChrono;
-    private JCheckBox chckbxSplitter;
+    private String directoryPdf;
+    private String toIgnoreFilePath;
+    private int wordsToRetrieve;
+    private ActorRef<ViewActor.Command> viewActor;
 
     private static final String TITLE = "PDF Analyzer";
     private static final String DIR_CHOOSER_LBL = "Directory PDF";
@@ -49,9 +52,9 @@ public class ShowGUI extends JFrame implements ActionListener {
         DIRPDF, TOIGNFILE
     }
 
-    public ShowGUI(Controller controller) {
+    public ShowGUI(ActorRef<ViewActor.Command> viewActor) {
 
-        this.controller = controller;
+        this.viewActor = viewActor;
 
         setFont(new Font("Tahoma", Font.PLAIN, 16));
         setTitle(TITLE);
@@ -120,9 +123,6 @@ public class ShowGUI extends JFrame implements ActionListener {
 
         lblChrono = new JLabel("");
         lblChrono.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        
-        chckbxSplitter = new JCheckBox("Split PDF");
-        chckbxSplitter.setFont(new Font("Tahoma", Font.PLAIN, 16));
 
         GroupLayout gl_panel = new GroupLayout(panel);
         gl_panel.setHorizontalGroup(
@@ -138,30 +138,27 @@ public class ShowGUI extends JFrame implements ActionListener {
         					.addGap(32)
         					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
         						.addComponent(lblOccurrencesRetrieve, GroupLayout.PREFERRED_SIZE, 107, GroupLayout.PREFERRED_SIZE)
-        						.addComponent(lblShowOccurrences, GroupLayout.DEFAULT_SIZE, 1054, Short.MAX_VALUE)
+        						.addComponent(lblShowOccurrences, GroupLayout.DEFAULT_SIZE, 1144, Short.MAX_VALUE)
         						.addComponent(lblChrono, GroupLayout.PREFERRED_SIZE, 214, GroupLayout.PREFERRED_SIZE)))
         				.addGroup(gl_panel.createSequentialGroup()
         					.addContainerGap()
-        					.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
+        					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+        						.addComponent(lblErrorRequiredField, GroupLayout.PREFERRED_SIZE, 581, GroupLayout.PREFERRED_SIZE)
         						.addGroup(gl_panel.createSequentialGroup()
-        							.addComponent(lblErrorRequiredField, GroupLayout.PREFERRED_SIZE, 581, GroupLayout.PREFERRED_SIZE)
-        							.addGap(386)
-        							.addComponent(chckbxSplitter, GroupLayout.PREFERRED_SIZE, 99, GroupLayout.PREFERRED_SIZE))
-        						.addGroup(Alignment.LEADING, gl_panel.createSequentialGroup()
         							.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING, false)
         								.addComponent(lblDirectoryPDF, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         								.addComponent(lblOccurrences, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 347, GroupLayout.PREFERRED_SIZE)
         								.addComponent(lblTotalWords, GroupLayout.PREFERRED_SIZE, 222, GroupLayout.PREFERRED_SIZE))
-        							.addPreferredGap(ComponentPlacement.RELATED, 580, Short.MAX_VALUE)
+        							.addPreferredGap(ComponentPlacement.RELATED, 670, Short.MAX_VALUE)
         							.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
         								.addComponent(btnDirectoryChooser)
         								.addComponent(wordsNumberTextField, 134, 134, 134)
         								.addGroup(gl_panel.createSequentialGroup()
         									.addComponent(counterWords, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         									.addPreferredGap(ComponentPlacement.RELATED))))
-        						.addGroup(Alignment.LEADING, gl_panel.createSequentialGroup()
+        						.addGroup(gl_panel.createSequentialGroup()
         							.addComponent(lblFileToIgnore, GroupLayout.PREFERRED_SIZE, 492, GroupLayout.PREFERRED_SIZE)
-        							.addPreferredGap(ComponentPlacement.RELATED, 475, Short.MAX_VALUE)
+        							.addPreferredGap(ComponentPlacement.RELATED, 565, Short.MAX_VALUE)
         							.addComponent(btnToIgnoreFileChooser)))
         					.addGap(10)))
         			.addContainerGap())
@@ -182,9 +179,7 @@ public class ShowGUI extends JFrame implements ActionListener {
         				.addComponent(lblFileToIgnore)
         				.addComponent(btnToIgnoreFileChooser))
         			.addGap(18)
-        			.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(lblErrorRequiredField)
-        				.addComponent(chckbxSplitter))
+        			.addComponent(lblErrorRequiredField)
         			.addGap(34)
         			.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
         				.addComponent(lblTotalWords)
@@ -195,7 +190,7 @@ public class ShowGUI extends JFrame implements ActionListener {
         			.addComponent(lblShowOccurrences, GroupLayout.PREFERRED_SIZE, 95, GroupLayout.PREFERRED_SIZE)
         			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(lblChrono)
-        			.addPreferredGap(ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+        			.addPreferredGap(ComponentPlacement.RELATED, 132, Short.MAX_VALUE)
         			.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
         				.addComponent(btnStop)
         				.addComponent(btnStart))
@@ -225,18 +220,13 @@ public class ShowGUI extends JFrame implements ActionListener {
         Object src = ev.getSource();
         if (src == btnStart) {
             if (checkRequiredFieldIsSet()) {
-                controller.setNumberOfWords(Integer.parseInt(wordsNumberTextField.getText()));
-                controller.notifyStarted();
-                controller.setSplit(chckbxSplitter.isSelected());
-                btnStart.setEnabled(false);
-                btnStop.setEnabled(true);
-                lblErrorRequiredField.setVisible(false);
-                lblChrono.setText("");
+                wordsToRetrieve = Integer.parseInt(wordsNumberTextField.getText());
+                this.viewActor.tell(new ViewActor.Start(this.directoryPdf, this.toIgnoreFilePath, this.wordsToRetrieve));
             } else {
                 lblErrorRequiredField.setVisible(true);
             }
         } else if (src == btnStop) {
-            controller.notifyStopped();
+            this.viewActor.tell(new ViewActor.Stop());
             btnStart.setEnabled(true);
             btnStop.setEnabled(false);
             log("PREMUTO STOP");
@@ -245,6 +235,13 @@ public class ShowGUI extends JFrame implements ActionListener {
         } else if (src == btnToIgnoreFileChooser) {
             showPopup(Choice.TOIGNFILE);
         }
+    }
+
+    public void start(){
+        btnStart.setEnabled(false);
+        btnStop.setEnabled(true);
+        lblErrorRequiredField.setVisible(false);
+        lblChrono.setText("");
     }
 
     public void showPopup(Enum<Choice> choice) {
@@ -257,7 +254,7 @@ public class ShowGUI extends JFrame implements ActionListener {
                 int result = fileChooser.showOpenDialog(this);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = fileChooser.getSelectedFile();
-                    controller.setDirectoryPdf(selectedFile.getAbsolutePath());
+                    this.directoryPdf = selectedFile.getAbsolutePath();
                     lblDirectoryPDF.setText(selectedFile.getAbsolutePath());
                     this.directoryIsSet = true;
                 }
@@ -268,7 +265,7 @@ public class ShowGUI extends JFrame implements ActionListener {
                 int result = fileChooser.showOpenDialog(this);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = fileChooser.getSelectedFile();
-                    controller.setToIgnoreFile(selectedFile.getAbsolutePath());
+                    this.toIgnoreFilePath = selectedFile.getAbsolutePath();
                     lblFileToIgnore.setText(selectedFile.getAbsolutePath());
                 }
             }
@@ -293,9 +290,9 @@ public class ShowGUI extends JFrame implements ActionListener {
         });
     }
 
-    public void updateComplete(double time) {
+    public void updateComplete(double finish) {
         SwingUtilities.invokeLater(() -> {
-            lblChrono.setText("Completato in: " + time + " secondi");
+            lblChrono.setText("Completato in: " + finish + " secondi");
             btnStart.setEnabled(true);
             btnStop.setEnabled(false);
         });

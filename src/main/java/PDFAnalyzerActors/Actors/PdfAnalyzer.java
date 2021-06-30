@@ -14,9 +14,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Pdf> {
+public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Command> {
 
-    public static class Pdf {
+    public interface Command{}
+
+    public static class Pdf implements Command{
         private File file;
         private final ActorRef<Collecter.Command> replyTo;
 
@@ -26,31 +28,43 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Pdf> {
         }
     }
 
+    public static class Finished implements Command{
+        private ActorRef<TextAnalyzer.Command> textAnalyzerToRemove;
+        public Finished(ActorRef<TextAnalyzer.Command>  textAnalyzerToRemove){
+            this. textAnalyzerToRemove =  textAnalyzerToRemove;
+        }
+    }
+
     private ArrayList<ActorRef<TextAnalyzer.Command>> analyzers;
     private final ActorRef<Ignorer.Command> ignorer;
+    private final ActorRef<PdfAnalyzer.Command> me;
+    private final ActorRef<Generator.Command> generator;
 
     /**
      * Factory method e costruttore
      */
-    public static Behavior<PdfAnalyzer.Pdf> create(ActorRef<Ignorer.Command> ignorer) {
-        return Behaviors.setup(context -> new PdfAnalyzer(context, ignorer));
+    public static Behavior<Command> create(ActorRef<Ignorer.Command> ignorer, ActorRef<Generator.Command> gen) {
+        return Behaviors.setup(context -> new PdfAnalyzer(context, ignorer, gen));
     }
 
-    private PdfAnalyzer(ActorContext<PdfAnalyzer.Pdf> context, ActorRef<Ignorer.Command> ignorer) {
+    private PdfAnalyzer(ActorContext<Command> context, ActorRef<Ignorer.Command> ignorer, ActorRef<Generator.Command> generator) {
         super(context);
+        log("Creazione");
         this.analyzers = new ArrayList<>();
         this.ignorer = ignorer;
-        log("Creazione");
+        this.generator = generator;
+        this.me = getContext().getSelf();
     }
 
     @Override
-    public Receive<Pdf> createReceive() {
+    public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(PdfAnalyzer.Pdf.class, this::onStartAnalyze)
+                .onMessage(PdfAnalyzer.Finished.class, this::onFinishedTextAnalyzer)
                 .build();
     }
 
-    private Behavior<Pdf> onStartAnalyze(PdfAnalyzer.Pdf pdf) {
+    private Behavior<Command> onStartAnalyze(Pdf pdf) {
         String currentFile = pdf.file.getName();
         this.log("Suddivido in ulteriori task il file " + currentFile);
         try {
@@ -63,17 +77,25 @@ public class PdfAnalyzer extends AbstractBehavior<PdfAnalyzer.Pdf> {
                 String pageText = stripper.getText(page);
                 log("Splitto la pagina: " + i + " di " + currentFile);
                 log("Metto in coda il task per la pagina: " + i + " del file " + currentFile);
-                ActorRef<TextAnalyzer.Command> analyzer = getContext().spawn(TextAnalyzer.create(ignorer), "pdfAnalyzer" + i);
+                ActorRef<TextAnalyzer.Command> analyzer = getContext().spawn(TextAnalyzer.create(ignorer, me), "TEXTAnalyzer" + i);
                 analyzers.add(analyzer);
                 analyzer.tell(new TextAnalyzer.Text(pageText, i, currentFile, pdf.replyTo));
                 log("Invio per la pagina " + i + " del file " + currentFile + " fatto");
                 i++;
                 page.close();
             }
-
             document.close();
+           // gen.tell(new Generator.Finished(pdf.istanceOfPdfAnalyzer));
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        return this;
+    }
+
+    private Behavior<Command> onFinishedTextAnalyzer(Finished finished) {
+        analyzers.remove(finished.textAnalyzerToRemove);
+        if(analyzers.isEmpty()){
+            generator.tell(new Generator.Finished(me));
         }
         return this;
     }

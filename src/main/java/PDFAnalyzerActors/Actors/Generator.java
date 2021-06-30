@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -21,40 +20,42 @@ public class Generator extends AbstractBehavior<Generator.Command> {
 
     public interface Command {};
 
-    public static class ToIgnoreWords implements Command {
-        private HashSet toIgnoreWords;
-
-        public ToIgnoreWords(HashSet toIgnoreWords) {
-            this.toIgnoreWords = toIgnoreWords;
-        }
-    }
-
     public static class Discovery implements Command {
-        private final String directoryPath;
-        private final int wordsToRetrieve;
         public final ActorRef<Collecter.Command> replyTo;
 
-        public Discovery(String directoryPath, int wordsToRetrieve, ActorRef<Collecter.Command> replyTo) {
-            this.directoryPath = directoryPath;
-            this.wordsToRetrieve = wordsToRetrieve;
+        public Discovery(ActorRef<Collecter.Command> replyTo) {
             this.replyTo = replyTo;
         }
     }
 
-    private ArrayList<ActorRef<PdfAnalyzer.Pdf>> analyzers;
+    public static class Finished implements Command{
+        private final ActorRef<PdfAnalyzer.Command> instanceOfPdf;
+        public Finished(ActorRef<PdfAnalyzer.Command> instanceOfPdf){
+            this.instanceOfPdf = instanceOfPdf;
+        }
+    }
+
+    private final String directoryPdf;
+    private ArrayList<ActorRef<PdfAnalyzer.Command>> analyzers;
     private final ActorRef<Ignorer.Command> ignorer;
+    private final ActorRef<Generator.Command> me;
+    private final ActorRef<Collecter.Command> collecter;
 
     /**
      * Factory method e costruttore
      */
-    public static Behavior<Command> create(ActorRef<Ignorer.Command> ignorer) {
-        return Behaviors.setup(context -> new Generator(context, ignorer));
+    public static Behavior<Command> create(ActorRef<Ignorer.Command> ignorer, ActorRef<Collecter.Command> collecter, String directoryPdf) {
+        return Behaviors.setup(context -> new Generator(context, ignorer, collecter, directoryPdf));
     }
 
-    private Generator(ActorContext<Command> context, ActorRef<Ignorer.Command> ignorer) {
+    private Generator(ActorContext<Command> context, ActorRef<Ignorer.Command> ignorer, ActorRef<Collecter.Command> collecter, String directoryPdf) {
         super(context);
-        analyzers = new ArrayList<>();
+        this.directoryPdf = directoryPdf;
+        this.analyzers = new ArrayList<>();
         this.ignorer = ignorer;
+        this.me = getContext().getSelf();
+        this.collecter = collecter;
+        context.getSelf().tell(new Discovery(collecter));
     }
 
     /**
@@ -64,7 +65,7 @@ public class Generator extends AbstractBehavior<Generator.Command> {
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(Generator.Discovery.class, this::onStartDiscovery)
-                .onMessage(Generator.ToIgnoreWords.class, this::onToIgnoreWords)
+                .onMessage(Generator.Finished.class, this::onFinished)
                 .build();
     }
 
@@ -73,7 +74,7 @@ public class Generator extends AbstractBehavior<Generator.Command> {
      */
     private Behavior<Command> onStartDiscovery(Discovery discovery) {
         log("Inizio a esplorare la directory");
-        Path path = Paths.get(discovery.directoryPath);
+        Path path = Paths.get(this.directoryPdf);
         AtomicInteger i = new AtomicInteger();
         try (Stream<Path> walk = Files.walk(path)) {
             walk.filter(Files::isReadable)
@@ -81,8 +82,8 @@ public class Generator extends AbstractBehavior<Generator.Command> {
                     .filter(this::isPdf)
                     .map(this::toFile)
                     .forEach(doc -> {
-                        log("Creo attore per il file " + doc.getName());
-                        ActorRef<PdfAnalyzer.Pdf> analyzer = getContext().spawn(PdfAnalyzer.create(ignorer), "pdfAnalyzer" + i);
+                        log("CREO L'ATTORE PER IL FILE: " + doc.getName());
+                        ActorRef<PdfAnalyzer.Command> analyzer = getContext().spawn(PdfAnalyzer.create(ignorer, me), "PDFAnalyzer" + i);
                         analyzers.add(analyzer);
                         analyzer.tell(new PdfAnalyzer.Pdf(doc, discovery.replyTo));
                         i.getAndIncrement();
@@ -91,17 +92,13 @@ public class Generator extends AbstractBehavior<Generator.Command> {
             e.printStackTrace();
         }
         log("Finito");
-        //return Behaviors.receive(Generator.Command.class).onMessage(Generator.ToIgnoreWords.class, this::onToIgnoreWords).build();
         return this;
     }
 
-    private Behavior<Command> onToIgnoreWords(Generator.ToIgnoreWords toIgnoreWords) {
-        //#create-actors
-        /*ActorRef<Greeter.Greeted> replyTo =
-                getContext().spawn(GreeterBot.create(3), command.directoryPath);
-        ignorer.tell(new ToIgnorer.ToIgnore(command.toIgnoreFilePath, replyTo));*/
-        //#create-actors
-        for(ActorRef<PdfAnalyzer.Pdf> analyzer : analyzers){
+    private Behavior<Command> onFinished(Finished finish) {
+        analyzers.remove(finish.instanceOfPdf);
+        if(analyzers.isEmpty()){ //quando la lista dei pdf è vuota manda un messaggio di terminazione al collecter
+            collecter.tell(new Collecter.Finished());
         }
         return this;
     }

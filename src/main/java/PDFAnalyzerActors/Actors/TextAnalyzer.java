@@ -12,6 +12,7 @@ import java.util.StringTokenizer;
 public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
 
     public interface Command{}
+
     public static class Text implements Command {
         private String text;
         private int currentPage;
@@ -35,38 +36,41 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
 
     private HashSet<String> toIgnoreWords;
     private final StashBuffer<Command> buffer;
+    private final ActorRef<PdfAnalyzer.Command> pdfRef;
 
     /** Factory method e costruttore */
-    public static Behavior<TextAnalyzer.Command> create(ActorRef<Ignorer.Command> ignorer) {
+    public static Behavior<TextAnalyzer.Command> create(ActorRef<Ignorer.Command> ignorer, ActorRef<PdfAnalyzer.Command> pdfRef) {
         //return Behaviors.setup(context -> new TextAnalyzer(context, ignorer));
         return Behaviors.withStash(
                 100,
                 stash ->
                         Behaviors.setup(
                                 ctx -> {
-                                    return new TextAnalyzer(ctx, stash, ignorer);
+                                    return new TextAnalyzer(ctx, stash, ignorer, pdfRef);
                                 }));
     }
 
-    private TextAnalyzer(ActorContext<TextAnalyzer.Command> context, StashBuffer<Command> buffer, ActorRef<Ignorer.Command> ignorer) {
+    private TextAnalyzer(ActorContext<TextAnalyzer.Command> context, StashBuffer<Command> buffer, ActorRef<Ignorer.Command> ignorer, ActorRef<PdfAnalyzer.Command> pdfRef) {
         super(context);
         this.buffer = buffer;
         ignorer.tell(new Ignorer.GetToIgnoreWords(context.getSelf()));
-        log("Creazione");
+        this.pdfRef = pdfRef;
+        log("Creazione TextAnalyzer");
     }
 
     @Override
     public Receive<TextAnalyzer.Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(TextAnalyzer.ToIgnoreWords.class, this::onGetToIgnoreWords)
-                .onMessage(Command.class, this::stashOtherCommand)
+                .onMessage(TextAnalyzer.Text.class, this::stashOtherCommand)
                 .build();
     }
 
     private Behavior<Command> onGetToIgnoreWords(TextAnalyzer.ToIgnoreWords toIgnoreWords) {
         this.toIgnoreWords = toIgnoreWords.toIgnoreWords;
-        //return Behaviors.receive(TextAnalyzer.Command.class).onMessage(TextAnalyzer.Text.class, this::onStartAnalyze).build();
-        return buffer.unstashAll(Behaviors.receive(TextAnalyzer.Command.class).onMessage(TextAnalyzer.Text.class, this::onStartAnalyze).build());
+        return buffer.unstashAll(Behaviors.receive(TextAnalyzer.Command.class).
+                onMessage(TextAnalyzer.Text.class, this::onStartAnalyze)
+                .build());
     }
 
     private Behavior<Command> stashOtherCommand(Command message) {
@@ -89,15 +93,16 @@ public class TextAnalyzer extends AbstractBehavior<TextAnalyzer.Command> {
             if (!toIgnoreWords.contains(word))
                 localCounter.merge(word, 1, Integer::sum);
         }
-        log("Finito di analizzare il testo");
+        log("Finito di analizzare il testo della pagina");
         log("Mando i risultati al collecter");
-        //counter.mergeOccurrence(localCounter, processedWords);
-        //ResultAnalyzeTask task = new ResultAnalyzeTask(counter, wordsToRetrieve, view, stopFlag);
-        text.replyTo.tell(new Collecter.Collect(localCounter));
+        text.replyTo.tell(new Collecter.Collect(localCounter, processedWords));
+        this.pdfRef.tell(new PdfAnalyzer.Finished(this.getContext().getSelf()));
+
         return this;
     }
 
     public void log(String s){
         System.out.println("[" + Thread.currentThread().getName() + "] " + "[Text Analyzer] " + s);
     }
+
 }
