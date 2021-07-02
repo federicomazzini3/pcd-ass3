@@ -1,5 +1,6 @@
 package AkkaCluster;
 
+import PuzzleActors.BoardActor;
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.Behaviors;
@@ -19,15 +20,16 @@ public class App {
         Cluster cluster = Cluster.get(context.getSystem());
 
         if (cluster.selfMember().hasRole("backend")) {
-          int workersPerNode = context.getSystem().settings().config().getInt("transformation.workers-per-node");
+          /*int workersPerNode = context.getSystem().settings().config().getInt("transformation.workers-per-node");
           for (int i = 0; i < workersPerNode; i++) {
             context.spawn(Worker.create(), "Worker" + i);
-          }
+          }*/
+          context.spawn(BoardActor.create(5,3,"src/main/java/PuzzleCentralized/bletchley-park-mansion.jpg"), "Worker");
         }
 
-        if (cluster.selfMember().hasRole("frontend")) {
+        /*if (cluster.selfMember().hasRole("frontend")) {
           context.spawn(Frontend.create(), "Frontend");
-        }
+        }*/
 
         return Behaviors.empty();
       });

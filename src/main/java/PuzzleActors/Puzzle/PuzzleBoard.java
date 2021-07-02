@@ -1,4 +1,6 @@
-package PuzzleCentralized;
+package PuzzleActors.Puzzle;
+import PuzzleActors.BoardActor;
+import akka.actor.typed.ActorRef;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -18,35 +20,34 @@ public class PuzzleBoard extends JFrame {
 	
 	final int rows, columns;
 	private List<Tile> tiles = new ArrayList<>();
-	
 	private SelectionManager selectionManager = new SelectionManager();
-	
-    public PuzzleBoard(final int rows, final int columns, final String imagePath) {
+	private ActorRef<BoardActor.Command> puzzleActor;
+	private final JPanel board;
+
+    public PuzzleBoard(final int rows, final int columns, ActorRef<BoardActor.Command> puzzleActor) {
     	this.rows = rows;
 		this.columns = columns;
-
+		this.puzzleActor = puzzleActor;
+    	
     	setTitle("PuzzleCentralized");
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
-        final JPanel board = new JPanel();
+        this.board = new JPanel();
         board.setBorder(BorderFactory.createLineBorder(Color.gray));
         board.setLayout(new GridLayout(rows, columns, 0, 0));
         getContentPane().add(board, BorderLayout.CENTER);
-        
-        createTiles(imagePath);
-        paintPuzzle(board);
     }
 
     /** Popola una lista di oggetti Tile, i quali sono composti da immagine, posizione originale immagine e posizione corrente immagine*/
-    private void createTiles(final String imagePath) {
+    public List<Tile> createTiles(final String imagePath) {
 		final BufferedImage image;
         
         try {
             image = ImageIO.read(new File(imagePath));
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Could not load image", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+            return new ArrayList<>();
         }
 
         final int imageWidth = image.getWidth(null);
@@ -70,21 +71,28 @@ public class PuzzleBoard extends JFrame {
                 position++;
             }
         }
+        paintPuzzle();
+        return tiles;
 	}
 
+	public void initTiles(List<Tile> tile){
+        this.tiles = tiles;
+    }
+
 	/** Data una collezione di Tile, inserisce al'interno del JPanel board ogni Tile e aggiunge un listener per le eventuali modifiche*/
-    private void paintPuzzle(final JPanel board) {
-    	board.removeAll();
+    private void paintPuzzle() {
+    	this.board.removeAll();
     	
     	Collections.sort(tiles);
     	
     	tiles.forEach(tile -> {
     		final TileButton btn = new TileButton(tile);
-            board.add(btn);
+            this.board.add(btn);
             btn.setBorder(BorderFactory.createLineBorder(Color.gray));
             btn.addActionListener(actionListener -> {
-            	selectionManager.selectTile(tile, () -> {
-            		paintPuzzle(board);
+            	selectionManager.selectTile(tile, (tile1, tile2) -> {
+            		//paintPuzzle();
+                    puzzleActor.tell(new BoardActor.Swap(tile1,tile2));
                 	checkSolution();
             	});
             });
@@ -92,6 +100,14 @@ public class PuzzleBoard extends JFrame {
     	
     	pack();
         setLocationRelativeTo(null);
+    }
+
+    public void updateTiles(Tile tile1, Tile tile2){
+        tiles.remove(tile1);
+        tiles.remove(tile2);
+        tiles.add(tile1);
+        tiles.add(tile2);
+        this.paintPuzzle();
     }
 
     private void checkSolution() {

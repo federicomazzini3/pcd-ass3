@@ -1,6 +1,7 @@
-package PuzzleCentralized;
+package PuzzleActors.Puzzle;
 
 import java.awt.*;
+import java.util.Objects;
 
 public class Tile implements Comparable<Tile>{
 	private Image image;
@@ -12,7 +13,7 @@ public class Tile implements Comparable<Tile>{
         this.originalPosition = originalPosition;
         this.currentPosition = currentPosition;
     }
-    
+
     public Image getImage() {
     	return image;
     }
@@ -34,4 +35,17 @@ public class Tile implements Comparable<Tile>{
 		return this.currentPosition < other.currentPosition ? -1 
 				: (this.currentPosition == other.currentPosition ? 0 : 1);
 	}
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Tile tile = (Tile) o;
+        return originalPosition == tile.originalPosition;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(originalPosition);
+    }
 }
