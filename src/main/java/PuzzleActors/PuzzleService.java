@@ -11,11 +11,6 @@ import akka.cluster.ddata.typed.javadsl.DistributedData;
 import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
     interface Command {
     }
@@ -31,7 +26,7 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
     public class Start implements Command {
     }
 
-    public static class InitParams implements Command, CborSerializable {
+    public static class InitParams implements Command, CborSerializable, BoardActor.Command {
         int n;
         int m;
         String imagePath;
@@ -207,7 +202,7 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
             cachedValue = initParams.getValue();
             System.out.println("\n " + this.getContext().getSelf() + " Parametri iniziali: " + cachedValue.n + " " + cachedValue.m + " " + cachedValue.imagePath);
             replicatorAdapter.unsubscribe(key);
-            //this.getContext().getSelf().tell(new Start());
+            this.getContext().getSelf().tell(new Start());
             return this;
         } else {
             // no deletes

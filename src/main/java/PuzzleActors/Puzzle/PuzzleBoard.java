@@ -5,11 +5,11 @@ import akka.actor.typed.ActorRef;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.CropImageFilter;
-import java.awt.image.FilteredImageSource;
+import java.awt.image.*;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.stream.IntStream;
 public class PuzzleBoard extends JFrame {
 	
 	final int rows, columns;
-	private List<Tile> tiles = new ArrayList<>();
+	private ArrayList<BoardActor.Tile> tiles = new ArrayList<>();
 	private SelectionManager selectionManager = new SelectionManager();
 	private ActorRef<BoardActor.Command> puzzleActor;
 	private final JPanel board;
@@ -40,7 +40,7 @@ public class PuzzleBoard extends JFrame {
     }
 
     /** Popola una lista di oggetti Tile, i quali sono composti da immagine, posizione originale immagine e posizione corrente immagine*/
-    public List<Tile> createTiles(final String imagePath) {
+    public List<BoardActor.Tile> createTiles(final String imagePath) {
 		final BufferedImage image;
         
         try {
@@ -67,16 +67,17 @@ public class PuzzleBoard extends JFrame {
                         					(imageWidth / columns), 
                         					imageHeight / rows)));
 
-                tiles.add(new Tile(imagePortion, position, randomPositions.get(position)));
+                tiles.add(new BoardActor.Tile(imagePortion, position, randomPositions.get(position)));
                 position++;
             }
         }
+        puzzleActor.tell(new BoardActor.Tiles(createTileRaw(tiles)));
         paintPuzzle();
         return tiles;
 	}
 
-	public void initTiles(List<Tile> tile){
-        this.tiles = tiles;
+	public void initTiles(ArrayList<BoardActor.Tile> tile){
+        this.tiles = tile;
     }
 
 	/** Data una collezione di Tile, inserisce al'interno del JPanel board ogni Tile e aggiunge un listener per le eventuali modifiche*/
@@ -102,7 +103,7 @@ public class PuzzleBoard extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    public void updateTiles(Tile tile1, Tile tile2){
+    public void updateTiles(BoardActor.Tile tile1, BoardActor.Tile tile2){
         tiles.remove(tile1);
         tiles.remove(tile2);
         tiles.add(tile1);
@@ -111,8 +112,36 @@ public class PuzzleBoard extends JFrame {
     }
 
     private void checkSolution() {
-    	if(tiles.stream().allMatch(Tile::isInRightPlace)) {
+    	if(tiles.stream().allMatch(BoardActor.Tile::isInRightPlace)) {
     		JOptionPane.showMessageDialog(this, "Puzzle Completed!", "", JOptionPane.INFORMATION_MESSAGE);
     	}
+    }
+
+    public boolean isTilesInitialized(){
+        return !(tiles.size() == 0);
+    }
+
+    private ArrayList<BoardActor.TileRaw> createTileRaw(ArrayList<BoardActor.Tile> tiles){
+        ArrayList<BoardActor.TileRaw> tilesRaw = new ArrayList<>();
+        for(BoardActor.Tile tile: tiles){
+            Image image = tile.getImage();
+            // Create a buffered image with transparency
+            BufferedImage bimage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+            // Draw the image on to the buffered image
+            Graphics2D bGr = bimage.createGraphics();
+            bGr.drawImage(image, 0, 0, null);
+            bGr.dispose();
+            WritableRaster raster = bimage.getRaster();
+            ByteArrayOutputStream baos=new ByteArrayOutputStream();
+            try{
+                ImageIO.write(bimage, "jpg", baos );
+            }catch (IOException e){
+
+            }
+            byte[] imageInByte=baos.toByteArray();;
+            tilesRaw.add(new BoardActor.TileRaw(imageInByte, tile.getOriginalPosition(), tile.getCurrentPosition()));
+        }
+        return tilesRaw;
     }
 }

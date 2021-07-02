@@ -1,13 +1,13 @@
 package PuzzleActors.Puzzle;
 
-import PuzzleActors.Puzzle.Tile;
+import PuzzleActors.BoardActor;
 
 public class SelectionManager {
 
     private boolean selectionActive = false;
-    private Tile selectedTile;
+    private BoardActor.Tile selectedTile;
 
-    public void selectTile(final Tile tile, final Listener listener) {
+    public void selectTile(final BoardActor.Tile tile, final Listener listener) {
 
         if (selectionActive) {
             selectionActive = false;
@@ -22,7 +22,7 @@ public class SelectionManager {
         }
     }
 
-    private void swap(final Tile t1, final Tile t2) {
+    private void swap(final BoardActor.Tile t1, final BoardActor.Tile t2) {
         int pos = t1.getCurrentPosition();
         t1.setCurrentPosition(t2.getCurrentPosition());
         t2.setCurrentPosition(pos);
@@ -30,7 +30,7 @@ public class SelectionManager {
 
     @FunctionalInterface
     interface Listener {
-        void onSwapPerformed(Tile tile1, Tile tile2);
+        void onSwapPerformed(BoardActor.Tile tile1, BoardActor.Tile tile2);
     }
 }
 
