@@ -217,7 +217,21 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                                     //ORSet<Swap> set = ORSet.create().add(node, new Swap(null,null));
 
                                     return curr
-                                            .add(node, tiles.tiles.get(0));
+                                            .add(node, tiles.tiles.get(0))
+                                            .add(node, tiles.tiles.get(1))
+                                            .add(node, tiles.tiles.get(2))
+                                            .add(node, tiles.tiles.get(3))
+                                            .add(node, tiles.tiles.get(4))
+                                            .add(node, tiles.tiles.get(5))
+                                            .add(node, tiles.tiles.get(6))
+                                            .add(node, tiles.tiles.get(7))
+                                            .add(node, tiles.tiles.get(8))
+                                            .add(node, tiles.tiles.get(9))
+                                            .add(node, tiles.tiles.get(10))
+                                            .add(node, tiles.tiles.get(11))
+                                            .add(node, tiles.tiles.get(12))
+                                            .add(node, tiles.tiles.get(13))
+                                            .add(node, tiles.tiles.get(14));
                                 }),
                 BoardActor.InternalUpdateResponse::new);
         return this;
@@ -235,10 +249,9 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     }
 
     private Behavior<Command> onInternalSubscribeResponse(InternalSubscribeResponse msg) {
-        System.out.println("\n onInternalSubscribeResponse \n");
         if (msg.rsp instanceof Replicator.Changed) {
             ORSet<TileRaw> initParams = ((Replicator.Changed<ORSet<TileRaw>>) msg.rsp).get(key);
-            System.out.println("onInternalSubscribeResponse");
+            //passare da tileraw a tile e aggiornare la puzzleboard
             //cachedValue = initParams.getValue();
             //System.out.println("\n " + this.getContext().getSelf() + " Nuove tiles" + cachedValue.tiles);
             //replicatorAdapter.unsubscribe(key);
