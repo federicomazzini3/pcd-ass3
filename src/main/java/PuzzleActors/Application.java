@@ -3,17 +3,11 @@ package PuzzleActors;
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.Behaviors;
-import akka.cluster.ddata.GCounter;
-import akka.cluster.ddata.GCounterKey;
-import akka.cluster.ddata.GSetKey;
 import akka.cluster.typed.Cluster;
-import akka.cluster.typed.JoinSeedNodes;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Application {
 
@@ -26,7 +20,6 @@ public class Application {
                     context.spawn(PuzzleService.create(first), "player");
                 }
 
-                //Cluster.get(context.getSystem()).manager().tell(new JoinSeedNodes(seedNodes));
                 return Behaviors.empty();
             });
         }
