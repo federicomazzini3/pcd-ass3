@@ -19,6 +19,7 @@ import java.util.stream.IntStream;
 public class PuzzleBoard extends JFrame {
 	
 	final int rows, columns;
+	String imagePath;
 	private ArrayList<BoardActor.Tile> tiles = new ArrayList<>();
 	private SelectionManager selectionManager = new SelectionManager();
 	private ActorRef<BoardActor.Command> puzzleActor;
@@ -41,6 +42,7 @@ public class PuzzleBoard extends JFrame {
 
     /** Popola una lista di oggetti Tile, i quali sono composti da immagine, posizione originale immagine e posizione corrente immagine*/
     public List<BoardActor.Tile> createTiles(final String imagePath) {
+        this.imagePath = imagePath;
 		final BufferedImage image;
         
         try {
@@ -71,13 +73,22 @@ public class PuzzleBoard extends JFrame {
                 position++;
             }
         }
-        puzzleActor.tell(new BoardActor.Tiles(createTileRaw(tiles)));
+        puzzleActor.tell(new BoardActor.Tiles(imagePath, createTileRaw(tiles)));
         paintPuzzle();
         return tiles;
 	}
 
-	public void initTiles(ArrayList<BoardActor.Tile> tile){
-        this.tiles = tile;
+	public void refreshTiles(BoardActor.Tiles tiles){
+        ArrayList<BoardActor.Tile> newTiles = new ArrayList<>();
+        if(this.tiles.size() == 0)
+            createTiles(tiles.imagePath);
+        for(BoardActor.TileRaw tileRaw: tiles.tiles){
+            for(BoardActor.Tile tile: this.tiles){
+                if(tile.getOriginalPosition() == tileRaw.originalPosition)
+                    tile.setCurrentPosition(tileRaw.currentPosition);
+            }
+        }
+        paintPuzzle();
     }
 
 	/** Data una collezione di Tile, inserisce al'interno del JPanel board ogni Tile e aggiunge un listener per le eventuali modifiche*/
@@ -121,7 +132,7 @@ public class PuzzleBoard extends JFrame {
         return !(tiles.size() == 0);
     }
 
-    private ArrayList<BoardActor.TileRaw> createTileRaw(ArrayList<BoardActor.Tile> tiles){
+    /*private ArrayList<BoardActor.TileRaw> createTileRaw(ArrayList<BoardActor.Tile> tiles){
         ArrayList<BoardActor.TileRaw> tilesRaw = new ArrayList<>();
         for(BoardActor.Tile tile: tiles){
             Image image = tile.getImage();
@@ -141,6 +152,14 @@ public class PuzzleBoard extends JFrame {
             }
             byte[] imageInByte=baos.toByteArray();;
             tilesRaw.add(new BoardActor.TileRaw(imageInByte, tile.getOriginalPosition(), tile.getCurrentPosition()));
+        }
+        return tilesRaw;
+    }*/
+
+    private ArrayList<BoardActor.TileRaw> createTileRaw(ArrayList<BoardActor.Tile> tiles){
+        ArrayList<BoardActor.TileRaw> tilesRaw = new ArrayList<>();
+        for(BoardActor.Tile tile: tiles){
+            tilesRaw.add(new BoardActor.TileRaw(tile.getOriginalPosition(), tile.getCurrentPosition()));
         }
         return tilesRaw;
     }
