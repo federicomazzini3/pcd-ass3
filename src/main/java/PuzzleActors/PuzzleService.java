@@ -147,13 +147,7 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
                                 LWWRegister.create(node, new InitParams(0, 0, "")),
                                 Replicator.writeLocal(),
                                 askReplyTo,
-                                curr -> {
-                                    /* System.out.println("Update initParams");
-                                    GSet set = GSet.create().add(cmd.initParams);
-                                    return set; */
-
-                                    return LWWRegister.create(node, cmd.initParams);
-                                }),
+                                curr -> LWWRegister.create(node, cmd.initParams)),
                 InternalUpdateResponse::new);
         return this;
     }
