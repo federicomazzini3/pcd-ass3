@@ -28,6 +28,10 @@ public class SelectionManager {
         t2.setCurrentPosition(pos);
     }
 
+    public void deselection(){
+        this.selectionActive = false;
+    }
+
     @FunctionalInterface
     interface Listener {
         void onSwapPerformed(BoardActor.Tile tile1, BoardActor.Tile tile2);

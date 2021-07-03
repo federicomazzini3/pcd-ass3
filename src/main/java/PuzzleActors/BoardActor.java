@@ -180,7 +180,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
         this.replicatorAdapter.subscribe(this.key, InternalSubscribeResponse::new);
 
         this.puzzle = new PuzzleBoard(n, m, this.getContext().getSelf());
-        this.puzzle.createTiles(imagePath);
+        this.puzzle.createAndLoadTiles(imagePath);
         puzzle.setVisible(true);
     }
 
@@ -219,25 +219,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                                 LWWRegister.create(node, new Tiles("", new ArrayList<>())),
                                 Replicator.writeLocal(),
                                 askReplyTo,
-                                curr -> {
-                                    /*return curr
-                                            .add(node, tiles.tiles.get(0))
-                                            .add(node, tiles.tiles.get(1))
-                                            .add(node, tiles.tiles.get(2))
-                                            .add(node, tiles.tiles.get(3))
-                                            .add(node, tiles.tiles.get(4))
-                                            .add(node, tiles.tiles.get(5))
-                                            .add(node, tiles.tiles.get(6))
-                                            .add(node, tiles.tiles.get(7))
-                                            .add(node, tiles.tiles.get(8))
-                                            .add(node, tiles.tiles.get(9))
-                                            .add(node, tiles.tiles.get(10))
-                                            .add(node, tiles.tiles.get(11))
-                                            .add(node, tiles.tiles.get(12))
-                                            .add(node, tiles.tiles.get(13))
-                                            .add(node, tiles.tiles.get(14));*/
-                                    return LWWRegister.create(node, tiles);
-                                }),
+                                curr -> LWWRegister.create(node, tiles)),
                 BoardActor.InternalUpdateResponse::new);
         return this;
     }
@@ -256,13 +238,9 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     private Behavior<Command> onInternalSubscribeResponse(InternalSubscribeResponse msg) {
         if (msg.rsp instanceof Replicator.Changed) {
-            LWWRegister<Tiles> initParams = ((Replicator.Changed<LWWRegister<Tiles>>) msg.rsp).get(key);
-            //passare da tileraw a tile e aggiornare la puzzleboard
-            //cachedValue = new ArrayList<TileRaw>(initParams.getElements());
-            cachedValue = initParams.getValue();
+            LWWRegister<Tiles> tiles = ((Replicator.Changed<LWWRegister<Tiles>>) msg.rsp).get(key);
+            cachedValue = tiles.getValue();
             System.out.println("\n" + this.getContext().getSelf().toString() + "Numero tiles: \n " + cachedValue.tiles.size());
-            //System.out.println("\n " + this.getContext().getSelf() + " Nuove tiles" + cachedValue.tiles);
-            //replicatorAdapter.unsubscribe(key);
             this.puzzle.refreshTiles(cachedValue);
             this.puzzle.setVisible(true);
             return this;
@@ -273,8 +251,9 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     }
 
     private Behavior<Command> onSwap(BoardActor.Swap swap) {
-        //this.puzzle.updateTiles(swap.tile1, swap.tile2);
+        //internal swap
         getContext().getLog().info("Swap delle caselle");
+        this.puzzle.updateTiles(swap.tile1, swap.tile2);
         System.out.println("\n " + this.getContext().getSelf().toString() + "Load tiles \n");
         replicatorAdapter.askUpdate(
                 askReplyTo ->

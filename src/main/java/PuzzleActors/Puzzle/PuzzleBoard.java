@@ -33,15 +33,16 @@ public class PuzzleBoard extends JFrame {
     	setTitle("PuzzleCentralized");
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
+
         this.board = new JPanel();
         board.setBorder(BorderFactory.createLineBorder(Color.gray));
         board.setLayout(new GridLayout(rows, columns, 0, 0));
         getContentPane().add(board, BorderLayout.CENTER);
+        setLocationRelativeTo(null);
     }
 
     /** Popola una lista di oggetti Tile, i quali sono composti da immagine, posizione originale immagine e posizione corrente immagine*/
-    public List<BoardActor.Tile> createTiles(final String imagePath) {
+    public void createTiles(final String imagePath) {
         this.imagePath = imagePath;
 		final BufferedImage image;
         
@@ -49,7 +50,7 @@ public class PuzzleBoard extends JFrame {
             image = ImageIO.read(new File(imagePath));
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Could not load image", "Error", JOptionPane.ERROR_MESSAGE);
-            return new ArrayList<>();
+            return;
         }
 
         final int imageWidth = image.getWidth(null);
@@ -73,13 +74,15 @@ public class PuzzleBoard extends JFrame {
                 position++;
             }
         }
-        puzzleActor.tell(new BoardActor.Tiles(imagePath, createTileRaw(tiles)));
-        paintPuzzle();
-        return tiles;
 	}
 
+    public void createAndLoadTiles(final String imagePath) {
+        createTiles(imagePath);
+        puzzleActor.tell(new BoardActor.Tiles(imagePath, createTileRaw(tiles)));
+        paintPuzzle();
+    }
+
 	public void refreshTiles(BoardActor.Tiles tiles){
-        ArrayList<BoardActor.Tile> newTiles = new ArrayList<>();
         if(this.tiles.size() == 0)
             createTiles(tiles.imagePath);
         for(BoardActor.TileRaw tileRaw: tiles.tiles){
@@ -88,7 +91,9 @@ public class PuzzleBoard extends JFrame {
                     tile.setCurrentPosition(tileRaw.currentPosition);
             }
         }
+        selectionManager.deselection();
         paintPuzzle();
+        checkSolution();
     }
 
 	/** Data una collezione di Tile, inserisce al'interno del JPanel board ogni Tile e aggiunge un listener per le eventuali modifiche*/
@@ -103,15 +108,12 @@ public class PuzzleBoard extends JFrame {
             btn.setBorder(BorderFactory.createLineBorder(Color.gray));
             btn.addActionListener(actionListener -> {
             	selectionManager.selectTile(tile, (tile1, tile2) -> {
-            		//paintPuzzle();
                     puzzleActor.tell(new BoardActor.Swap(tile1,tile2));
-                	checkSolution();
             	});
             });
     	});
     	
     	pack();
-        setLocationRelativeTo(null);
     }
 
     public void updateTiles(BoardActor.Tile tile1, BoardActor.Tile tile2){
@@ -127,34 +129,6 @@ public class PuzzleBoard extends JFrame {
     		JOptionPane.showMessageDialog(this, "Puzzle Completed!", "", JOptionPane.INFORMATION_MESSAGE);
     	}
     }
-
-    public boolean isTilesInitialized(){
-        return !(tiles.size() == 0);
-    }
-
-    /*private ArrayList<BoardActor.TileRaw> createTileRaw(ArrayList<BoardActor.Tile> tiles){
-        ArrayList<BoardActor.TileRaw> tilesRaw = new ArrayList<>();
-        for(BoardActor.Tile tile: tiles){
-            Image image = tile.getImage();
-            // Create a buffered image with transparency
-            BufferedImage bimage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-
-            // Draw the image on to the buffered image
-            Graphics2D bGr = bimage.createGraphics();
-            bGr.drawImage(image, 0, 0, null);
-            bGr.dispose();
-            WritableRaster raster = bimage.getRaster();
-            ByteArrayOutputStream baos=new ByteArrayOutputStream();
-            try{
-                ImageIO.write(bimage, "jpg", baos );
-            }catch (IOException e){
-
-            }
-            byte[] imageInByte=baos.toByteArray();;
-            tilesRaw.add(new BoardActor.TileRaw(imageInByte, tile.getOriginalPosition(), tile.getCurrentPosition()));
-        }
-        return tilesRaw;
-    }*/
 
     private ArrayList<BoardActor.TileRaw> createTileRaw(ArrayList<BoardActor.Tile> tiles){
         ArrayList<BoardActor.TileRaw> tilesRaw = new ArrayList<>();
