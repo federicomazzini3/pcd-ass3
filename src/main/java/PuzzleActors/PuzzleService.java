@@ -63,7 +63,7 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
     private final SelfUniqueAddress node;
     private final Key<LWWRegister<InitService.InitParams>> key;
 
-    private ActorRef<BoardActor> boardActor;
+    private ActorRef<BoardActor.Command> boardActor;
     private InitService.InitParams cachedValue;
 
     private PuzzleService(
@@ -90,16 +90,9 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
                 .build();
     }
 
-    private Behavior<PuzzleService.Command> onGetInitParams(PuzzleService.GetInitParams command) {
-        this.replicatorAdapter.askGet(
-                askReplyTo -> new Replicator.Get<>(key, new Replicator.ReadMajority(Duration.ofSeconds(3)), askReplyTo),
-                rsp -> new PuzzleService.InternalGetResponse(rsp, this.getContext().getSelf()));
-        return Behaviors.same();
-    }
-
     private Behavior<Command> onStart(Start a) {
         if (this.boardActor == null) {
-            getContext().spawn(BoardActor.create(cachedValue.n, cachedValue.m, cachedValue.imagePath), "boardActor");
+            this.boardActor = getContext().spawn(BoardActor.create(cachedValue.n, cachedValue.m, cachedValue.imagePath), "boardActor");
         }
         return this;
     }

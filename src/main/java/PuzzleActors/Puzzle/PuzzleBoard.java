@@ -6,8 +6,10 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.*;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +20,7 @@ public class PuzzleBoard extends JFrame {
 	
 	final int rows, columns;
 	String imagePath;
+	byte[] imageRaw;
 	private ArrayList<Tile> tiles = new ArrayList<>();
 	private SelectionManager selectionManager = new SelectionManager();
 	private ActorRef<BoardActor.Command> puzzleActor;
@@ -27,6 +30,7 @@ public class PuzzleBoard extends JFrame {
     	this.rows = rows;
 		this.columns = columns;
 		this.imagePath = imagePath;
+		this.imageRaw = imageRaw;
 		this.puzzleActor = puzzleActor;
     	
     	setTitle("PuzzleCentralized");
@@ -45,7 +49,8 @@ public class PuzzleBoard extends JFrame {
 		final BufferedImage image;
         
         try {
-            image = ImageIO.read(new File(imagePath));
+            //image = ImageIO.read(new ByteArrayInputStream(this.imageRaw));
+            image = ImageIO.read(new URL(imagePath));
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Could not load image", "Error", JOptionPane.ERROR_MESSAGE);
             return;
