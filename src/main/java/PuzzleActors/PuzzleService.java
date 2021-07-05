@@ -139,7 +139,7 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
                 .build();
     }
 
-    private Behavior<Command> onInitialize(Initialize cmd) {
+    private Behavior<Command> onInitialize(Initialize init) {
         replicatorAdapter.askUpdate(
                 askReplyTo ->
                         new Replicator.Update<>(
@@ -147,7 +147,7 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
                                 LWWRegister.create(node, new InitParams(0, 0, "")),
                                 Replicator.writeLocal(),
                                 askReplyTo,
-                                curr -> LWWRegister.create(node, cmd.initParams)),
+                                curr -> LWWRegister.create(node, init.initParams)),
                 InternalUpdateResponse::new);
         return this;
     }
@@ -155,9 +155,9 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
     private Behavior<Command> onStart(Start a) {
         if (this.boardActor == null) {
             if (first)
-                getContext().spawn(BoardActor.create(cachedValue.n, cachedValue.m, cachedValue.imagePath), "boardActor");
+                getContext().spawn(BoardActor.create(cachedValue.n, cachedValue.m, cachedValue.imagePath, first), "boardActor");
             else
-                getContext().spawn(BoardActor.create(cachedValue.n, cachedValue.m), "boardActor");
+                getContext().spawn(BoardActor.create(cachedValue.n, cachedValue.m, cachedValue.imagePath), "boardActor");
         }
         return this;
     }

@@ -23,9 +23,10 @@ public class PuzzleBoard extends JFrame {
 	private ActorRef<BoardActor.Command> puzzleActor;
 	private final JPanel board;
 
-    public PuzzleBoard(final int rows, final int columns, ActorRef<BoardActor.Command> puzzleActor) {
+    public PuzzleBoard(final int rows, final int columns, String imagePath, ActorRef<BoardActor.Command> puzzleActor) {
     	this.rows = rows;
 		this.columns = columns;
+		this.imagePath = imagePath;
 		this.puzzleActor = puzzleActor;
     	
     	setTitle("PuzzleCentralized");
@@ -40,8 +41,7 @@ public class PuzzleBoard extends JFrame {
     }
 
     /** Popola una lista di oggetti Tile, i quali sono composti da immagine, posizione originale immagine e posizione corrente immagine*/
-    public void createTiles(final String imagePath) {
-        this.imagePath = imagePath;
+    public void createTiles() {
 		final BufferedImage image;
         
         try {
@@ -74,15 +74,15 @@ public class PuzzleBoard extends JFrame {
         }
 	}
 
-    public void createAndLoadTiles(final String imagePath) {
-        createTiles(imagePath);
-        puzzleActor.tell(new BoardActor.Tiles(imagePath, createTileRaw(tiles)));
+    public void createAndLoadTiles() {
+        createTiles();
+        puzzleActor.tell(new BoardActor.Tiles(createTileRaw(tiles)));
         paintPuzzle();
     }
 
 	public void refreshTiles(BoardActor.Tiles tiles){
         if(this.tiles.size() == 0)
-            createTiles(tiles.imagePath);
+            createTiles();
         for(BoardActor.TileRaw tileRaw: tiles.tiles){
             for(Tile tile: this.tiles){
                 if(tile.getOriginalPosition() == tileRaw.originalPosition)
@@ -91,7 +91,6 @@ public class PuzzleBoard extends JFrame {
         }
         selectionManager.deselection();
         paintPuzzle();
-        checkSolution();
     }
 
 	/** Data una collezione di Tile, inserisce al'interno del JPanel board ogni Tile e aggiunge un listener per le eventuali modifiche*/
@@ -112,6 +111,8 @@ public class PuzzleBoard extends JFrame {
     	});
     	
     	pack();
+    	this.setVisible(true);
+        checkSolution();
     }
 
     public void updateTiles(Tile tile1, Tile tile2){

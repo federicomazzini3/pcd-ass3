@@ -49,16 +49,13 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     }
 
     public static class Tiles implements BoardActor.Command, CborSerializable {
-        public String imagePath;
         public ArrayList<TileRaw> tiles;
 
-        public Tiles(String imagePath, ArrayList<TileRaw> tiles) {
-            this.imagePath = imagePath;
+        public Tiles(ArrayList<TileRaw> tiles) {
             this.tiles = tiles;
         }
 
         public Tiles() {
-            this.imagePath = "";
             this.tiles = new ArrayList<>();
         }
     }
@@ -102,8 +99,17 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     /**
      * Factory method e costruttore
      */
-    public static Behavior<Command> create(int n, int m, String imagePath) {
+    public static Behavior<Command> create(int n, int m, String imagePath, boolean first) {
         //return Behaviors.setup(context -> new BoardActor(context, n, m, imagePath));
+        return Behaviors.setup(
+                ctx ->
+                        DistributedData.withReplicatorMessageAdapter(
+                                (ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter) ->
+                                        new BoardActor(ctx, replicatorAdapter, n, m, imagePath, first)));
+    }
+
+    public static Behavior<Command> create(int n, int m, String imagePath) {
+        //return Behaviors.setup(context -> new BoardActor(context, n, m));
         return Behaviors.setup(
                 ctx ->
                         DistributedData.withReplicatorMessageAdapter(
@@ -111,16 +117,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                                         new BoardActor(ctx, replicatorAdapter, n, m, imagePath)));
     }
 
-    public static Behavior<Command> create(int n, int m) {
-        //return Behaviors.setup(context -> new BoardActor(context, n, m));
-        return Behaviors.setup(
-                ctx ->
-                        DistributedData.withReplicatorMessageAdapter(
-                                (ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter) ->
-                                        new BoardActor(ctx, replicatorAdapter, n, m)));
-    }
-
-    private BoardActor(ActorContext<Command> context, ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter, int n, int m, String imagePath) {
+    private BoardActor(ActorContext<Command> context, ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter, int n, int m, String imagePath, boolean first) {
         super(context);
         System.out.println("\n first actor create \n");
         this.replicatorAdapter = replicatorAdapter;
@@ -129,12 +126,12 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
         this.replicatorAdapter.subscribe(this.key, InternalSubscribeResponse::new);
 
-        this.puzzle = new PuzzleBoard(n, m, this.getContext().getSelf());
-        this.puzzle.createAndLoadTiles(imagePath);
+        this.puzzle = new PuzzleBoard(n, m, imagePath, this.getContext().getSelf());
+        this.puzzle.createAndLoadTiles();
         puzzle.setVisible(true);
     }
 
-    private BoardActor(ActorContext<Command> context, ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter, int n, int m) {
+    private BoardActor(ActorContext<Command> context, ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter, int n, int m, String imagePath) {
         super(context);
         System.out.println("\n other actor create \n");
         this.replicatorAdapter = replicatorAdapter;
@@ -143,7 +140,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
         this.replicatorAdapter.subscribe(this.key, InternalSubscribeResponse::new);
 
-        this.puzzle = new PuzzleBoard(n, m, this.getContext().getSelf());
+        this.puzzle = new PuzzleBoard(n, m, imagePath, this.getContext().getSelf());
     }
 
     @Override
@@ -167,7 +164,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                 askReplyTo ->
                         new Replicator.Update<>(
                                 key,
-                                LWWRegister.create(node, new Tiles("", new ArrayList<>())),
+                                LWWRegister.create(node, new Tiles(new ArrayList<>())),
                                 Replicator.writeLocal(),
                                 askReplyTo,
                                 curr -> LWWRegister.create(node, tiles)),
@@ -195,7 +192,6 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                 cachedValue = tiles.getValue();
                 System.out.println("\n" + this.getContext().getSelf().toString() + "Numero tiles: \n " + cachedValue.tiles.size());
                 this.puzzle.refreshTiles(cachedValue);
-                this.puzzle.setVisible(true);
             }
             return this;
         } else {
