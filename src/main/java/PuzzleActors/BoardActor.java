@@ -1,6 +1,7 @@
 package PuzzleActors;
 
 import PuzzleActors.Puzzle.PuzzleBoard;
+import PuzzleActors.Puzzle.Tile;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
@@ -11,75 +12,23 @@ import akka.cluster.ddata.*;
 import akka.cluster.ddata.typed.javadsl.DistributedData;
 import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.awt.*;
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     public interface Command {
     }
 
-    public static class Tile implements Comparable<Tile>, CborSerializable, BoardActor.Command {
-        private Image image;
-        private int originalPosition;
-        private int currentPosition;
-
-        public Tile(final Image image, final int originalPosition, final int currentPosition) {
-            this.image = image;
-            this.originalPosition = originalPosition;
-            this.currentPosition = currentPosition;
-        }
-
-        public Image getImage() {
-            return image;
-        }
-
-        public boolean isInRightPlace() {
-            return currentPosition == originalPosition;
-        }
-
-        public int getCurrentPosition() {
-            return currentPosition;
-        }
-
-        public int getOriginalPosition() {
-            return originalPosition;
-        }
-
-        public void setCurrentPosition(final int newPosition) {
-            currentPosition = newPosition;
-        }
-
-        @Override
-        public int compareTo(Tile other) {
-            return this.currentPosition < other.currentPosition ? -1
-                    : (this.currentPosition == other.currentPosition ? 0 : 1);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Tile tile = (Tile) o;
-            return originalPosition == tile.originalPosition;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(originalPosition);
-        }
-    }
-
-    public static class TileRaw implements Command, CborSerializable{
+    public static class TileRaw implements Command, CborSerializable {
         public int originalPosition;
         public int currentPosition;
-        public TileRaw(int originalPosition, int currentPosition){
+
+        public TileRaw(int originalPosition, int currentPosition) {
             this.originalPosition = originalPosition;
             this.currentPosition = currentPosition;
         }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -89,7 +38,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
         }
     }
 
-    public static class Swap implements Command, CborSerializable{
+    public static class Swap implements Command, CborSerializable {
         private Tile tile1;
         private Tile tile2;
 
@@ -99,7 +48,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
         }
     }
 
-    public static class Tiles implements BoardActor.Command, CborSerializable{
+    public static class Tiles implements BoardActor.Command, CborSerializable {
         public String imagePath;
         public ArrayList<TileRaw> tiles;
 
@@ -107,7 +56,8 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
             this.imagePath = imagePath;
             this.tiles = tiles;
         }
-        public Tiles(){
+
+        public Tiles() {
             this.imagePath = "";
             this.tiles = new ArrayList<>();
         }
@@ -170,7 +120,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                                         new BoardActor(ctx, replicatorAdapter, n, m)));
     }
 
-    private BoardActor(ActorContext<Command> context, ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter, int n, int m, String imagePath){
+    private BoardActor(ActorContext<Command> context, ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter, int n, int m, String imagePath) {
         super(context);
         System.out.println("\n first actor create \n");
         this.replicatorAdapter = replicatorAdapter;
@@ -212,6 +162,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     private Behavior<Command> onLoadTile(Tiles tiles) {
         System.out.println("\n " + this.getContext().getSelf().toString() + "Load tiles \n");
+        cachedValue = tiles;
         replicatorAdapter.askUpdate(
                 askReplyTo ->
                         new Replicator.Update<>(
@@ -239,10 +190,13 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     private Behavior<Command> onInternalSubscribeResponse(InternalSubscribeResponse msg) {
         if (msg.rsp instanceof Replicator.Changed) {
             LWWRegister<Tiles> tiles = ((Replicator.Changed<LWWRegister<Tiles>>) msg.rsp).get(key);
-            cachedValue = tiles.getValue();
-            System.out.println("\n" + this.getContext().getSelf().toString() + "Numero tiles: \n " + cachedValue.tiles.size());
-            this.puzzle.refreshTiles(cachedValue);
-            this.puzzle.setVisible(true);
+            if(node.uniqueAddress().uid()  != ((Replicator.Changed<LWWRegister<Tiles>>) msg.rsp).dataValue().updatedBy().uid()){
+                System.out.println("\nNew board moves by: " + ((Replicator.Changed<LWWRegister<Tiles>>) msg.rsp).dataValue().updatedBy());
+                cachedValue = tiles.getValue();
+                System.out.println("\n" + this.getContext().getSelf().toString() + "Numero tiles: \n " + cachedValue.tiles.size());
+                this.puzzle.refreshTiles(cachedValue);
+                this.puzzle.setVisible(true);
+            }
             return this;
         } else {
             // no deletes
@@ -263,8 +217,9 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                                 Replicator.writeLocal(),
                                 askReplyTo,
                                 curr -> {
-                                    TileRaw tileRaw1 = new TileRaw(swap.tile1.originalPosition, swap.tile1.currentPosition);
-                                    TileRaw tileRaw2 = new TileRaw(swap.tile2.originalPosition, swap.tile2.currentPosition);
+                                    System.out.println("\n cached value: " + cachedValue);
+                                    TileRaw tileRaw1 = new TileRaw(swap.tile1.getOriginalPosition(), swap.tile1.getCurrentPosition());
+                                    TileRaw tileRaw2 = new TileRaw(swap.tile2.getOriginalPosition(), swap.tile2.getCurrentPosition());
                                     cachedValue.tiles.remove(tileRaw1);
                                     cachedValue.tiles.remove(tileRaw2);
                                     cachedValue.tiles.add(tileRaw1);

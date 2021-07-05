@@ -6,10 +6,8 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.*;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +18,7 @@ public class PuzzleBoard extends JFrame {
 	
 	final int rows, columns;
 	String imagePath;
-	private ArrayList<BoardActor.Tile> tiles = new ArrayList<>();
+	private ArrayList<Tile> tiles = new ArrayList<>();
 	private SelectionManager selectionManager = new SelectionManager();
 	private ActorRef<BoardActor.Command> puzzleActor;
 	private final JPanel board;
@@ -70,7 +68,7 @@ public class PuzzleBoard extends JFrame {
                         					(imageWidth / columns), 
                         					imageHeight / rows)));
 
-                tiles.add(new BoardActor.Tile(imagePortion, position, randomPositions.get(position)));
+                tiles.add(new Tile(imagePortion, position, randomPositions.get(position)));
                 position++;
             }
         }
@@ -86,7 +84,7 @@ public class PuzzleBoard extends JFrame {
         if(this.tiles.size() == 0)
             createTiles(tiles.imagePath);
         for(BoardActor.TileRaw tileRaw: tiles.tiles){
-            for(BoardActor.Tile tile: this.tiles){
+            for(Tile tile: this.tiles){
                 if(tile.getOriginalPosition() == tileRaw.originalPosition)
                     tile.setCurrentPosition(tileRaw.currentPosition);
             }
@@ -116,7 +114,7 @@ public class PuzzleBoard extends JFrame {
     	pack();
     }
 
-    public void updateTiles(BoardActor.Tile tile1, BoardActor.Tile tile2){
+    public void updateTiles(Tile tile1, Tile tile2){
         tiles.remove(tile1);
         tiles.remove(tile2);
         tiles.add(tile1);
@@ -125,14 +123,14 @@ public class PuzzleBoard extends JFrame {
     }
 
     private void checkSolution() {
-    	if(tiles.stream().allMatch(BoardActor.Tile::isInRightPlace)) {
+    	if(tiles.stream().allMatch(Tile::isInRightPlace)) {
     		JOptionPane.showMessageDialog(this, "Puzzle Completed!", "", JOptionPane.INFORMATION_MESSAGE);
     	}
     }
 
-    private ArrayList<BoardActor.TileRaw> createTileRaw(ArrayList<BoardActor.Tile> tiles){
+    private ArrayList<BoardActor.TileRaw> createTileRaw(ArrayList<Tile> tiles){
         ArrayList<BoardActor.TileRaw> tilesRaw = new ArrayList<>();
-        for(BoardActor.Tile tile: tiles){
+        for(Tile tile: tiles){
             tilesRaw.add(new BoardActor.TileRaw(tile.getOriginalPosition(), tile.getCurrentPosition()));
         }
         return tilesRaw;
