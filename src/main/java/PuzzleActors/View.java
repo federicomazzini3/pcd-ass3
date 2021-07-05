@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Font;
 import java.awt.Cursor;
+import java.net.UnknownHostException;
 
 public class View extends JFrame  implements ActionListener {
 	private JTextField txtFldPublicAddress;
@@ -98,9 +99,29 @@ public class View extends JFrame  implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent ev) {
+        String publicAddress = txtFldPublicAddress.getText();
+        int publicPort = Integer.parseInt(txtFldPublicPort.getText());
+        int localPort = Integer.parseInt(txtFldLocalPort.getText());
+        String friendAddress = txtFldFriendAddress.getText();
+        String completeAddress = publicAddress + ":" + publicPort;
+
         Object src = ev.getSource();
         if (src == btnJoinGame) {
+            if(!(txtFldPublicAddress.getText().isEmpty() && txtFldPublicPort.getText().isEmpty() && txtFldLocalPort.getText().isEmpty() && txtFldFriendAddress.getText().isEmpty())){
+                try {
+                    Application.startup("player", friendAddress, publicAddress, publicPort, localPort);
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }
         } else if (src == btnStartGame) {
+            if(!(txtFldPublicAddress.getText().isEmpty() && txtFldPublicPort.getText().isEmpty() && txtFldLocalPort.getText().isEmpty())){
+                try {
+                    Application.startup("firstPlayer", completeAddress, publicAddress, publicPort, localPort);
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
