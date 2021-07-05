@@ -56,7 +56,7 @@ public class Application {
         view.setVisible(true);
     }
 
-    private static void startup(String role, String friendNode, String publicIPAddress, int publicPort, int localPort) throws UnknownHostException {
+    public static void startup(String role, String friendNode, String publicIPAddress, int publicPort, int localPort) throws UnknownHostException {
         // Override the configuration
         Map<String, Object> overrides = new HashMap<>();
 
