@@ -13,12 +13,15 @@ import akka.cluster.ddata.typed.javadsl.DistributedData;
 import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
 
+import java.time.Duration;
 import java.util.ArrayList;
 
 public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     public interface Command {
     }
+
+    public static class GetTiles implements Command{}
 
     public static class TileRaw implements Command, CborSerializable {
         public int originalPosition;
@@ -73,9 +76,9 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     private static class InternalGetResponse implements InternalCommand {
         final Replicator.GetResponse<LWWRegister<Tiles>> rsp;
-        final ActorRef<Integer> replyTo;
+        final ActorRef<BoardActor.Command> replyTo;
 
-        InternalGetResponse(Replicator.GetResponse<LWWRegister<Tiles>> rsp, ActorRef<Integer> replyTo) {
+        InternalGetResponse(Replicator.GetResponse<LWWRegister<Tiles>> rsp, ActorRef<BoardActor.Command> replyTo) {
             this.rsp = rsp;
             this.replyTo = replyTo;
         }
@@ -99,14 +102,6 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     /**
      * Factory method e costruttore
      */
-    public static Behavior<Command> create(int n, int m, String imagePath, boolean first) {
-        //return Behaviors.setup(context -> new BoardActor(context, n, m, imagePath));
-        return Behaviors.setup(
-                ctx ->
-                        DistributedData.withReplicatorMessageAdapter(
-                                (ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter) ->
-                                        new BoardActor(ctx, replicatorAdapter, n, m, imagePath, first)));
-    }
 
     public static Behavior<Command> create(int n, int m, String imagePath) {
         //return Behaviors.setup(context -> new BoardActor(context, n, m));
@@ -115,20 +110,6 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                         DistributedData.withReplicatorMessageAdapter(
                                 (ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter) ->
                                         new BoardActor(ctx, replicatorAdapter, n, m, imagePath)));
-    }
-
-    private BoardActor(ActorContext<Command> context, ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter, int n, int m, String imagePath, boolean first) {
-        super(context);
-        System.out.println("\n first actor create \n");
-        this.replicatorAdapter = replicatorAdapter;
-        this.key = LWWRegisterKey.create("tiles");
-        this.node = DistributedData.get(context.getSystem()).selfUniqueAddress();
-
-        this.replicatorAdapter.subscribe(this.key, InternalSubscribeResponse::new);
-
-        this.puzzle = new PuzzleBoard(n, m, imagePath, this.getContext().getSelf());
-        this.puzzle.createAndLoadTiles();
-        puzzle.setVisible(true);
     }
 
     private BoardActor(ActorContext<Command> context, ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter, int n, int m, String imagePath) {
@@ -141,6 +122,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
         this.replicatorAdapter.subscribe(this.key, InternalSubscribeResponse::new);
 
         this.puzzle = new PuzzleBoard(n, m, imagePath, this.getContext().getSelf());
+        this.getContext().getSelf().tell(new GetTiles());
     }
 
     @Override
@@ -152,9 +134,17 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                 }) //update effettuato dallo stesso attore
                 .onMessage(InternalGetResponse.class, this::onInternalGetResponse)
                 .onMessage(InternalSubscribeResponse.class, this::onInternalSubscribeResponse) //update del replicator a cui ci si è sottoscritti
+                .onMessage(GetTiles.class, this::onGetTiles)
                 .onMessage(Tiles.class, this::onLoadTile)
                 .onMessage(BoardActor.Swap.class, this::onSwap)
                 .build();
+    }
+
+    private Behavior<Command> onGetTiles(GetTiles command) {
+        this.replicatorAdapter.askGet(
+                askReplyTo -> new Replicator.Get<>(key, new Replicator.ReadMajority(Duration.ofSeconds(3)), askReplyTo),
+                rsp -> new InternalGetResponse(rsp, this.getContext().getSelf()));
+        return Behaviors.same();
     }
 
     private Behavior<Command> onLoadTile(Tiles tiles) {
@@ -174,13 +164,15 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     private Behavior<Command> onInternalGetResponse(InternalGetResponse msg) {
         if (msg.rsp instanceof Replicator.GetSuccess) {
-            System.out.println("\n onInternalGetResponse \n");
+            System.out.println("\n onInternalGetResponse Success\n");
             //int value = ((Replicator.GetSuccess<?>) msg.rsp).get(key).getValue().intValue();
             //msg.replyTo.tell(value);
             return this;
         } else {
             // not dealing with failures
-            return Behaviors.unhandled();
+            System.out.println("\n onInternalGetResponse Failed\n");
+            this.puzzle.createAndLoadTiles();
+            return Behaviors.same();
         }
     }
 
