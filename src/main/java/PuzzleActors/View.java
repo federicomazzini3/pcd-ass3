@@ -61,7 +61,7 @@ public class View extends JFrame  implements ActionListener {
         lblColumns.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
         txtFldImageUrl = new JTextField();
-        txtFldImageUrl.setText("https://i.ytimg.com/vi/JNslcFZw7Zo/maxresdefault.jpg");
+        txtFldImageUrl.setText("https://cdn.tuttosport.com/images/2015/07/15/120422051-727e4986-e8c0-48db-8e7f-2ee1162e92ac.jpg");
         txtFldImageUrl.setBounds(137, 98, 206, 23);
         txtFldImageUrl.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldImageUrl.setColumns(10);
