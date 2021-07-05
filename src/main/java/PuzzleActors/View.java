@@ -6,7 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.Font;
 import java.awt.Cursor;
 
-public class View extends JFrame {
+public class View extends JFrame  implements ActionListener {
 	private JTextField txtFldPublicAddress;
 	private JTextField txtFldPublicPort;
 	private JTextField txtFldLocalPort;
@@ -15,7 +15,8 @@ public class View extends JFrame {
 	private JLabel lblPublicPort;
 	private JLabel lblLocalPort;
 	private JLabel lblFriendAddress;
-
+    private JButton btnStartGame;
+    private JButton btnJoinGame;
 
     public View() {
     	setResizable(false);
@@ -28,11 +29,11 @@ public class View extends JFrame {
         JPanel panel = new JPanel();
         panel.setBounds(0, 0, 351, 240);
         
-        JButton btnJoinGame = new JButton("Join a game");
+        btnJoinGame = new JButton("Join a game");
         btnJoinGame.setBounds(195, 186, 148, 43);
         btnJoinGame.setFont(new Font("Tahoma", Font.PLAIN, 16));
         
-        JButton btnStartGame = new JButton("Start new game");
+        btnStartGame = new JButton("Start new game");
         btnStartGame.setBounds(20, 186, 165, 43);
         btnStartGame.setFont(new Font("Tahoma", Font.PLAIN, 16));
         btnStartGame.addActionListener(new ActionListener() {
@@ -91,6 +92,15 @@ public class View extends JFrame {
         panel.add(txtFldPublicAddress);
         getContentPane().add(panel);
         this.setVisible(true);
+        btnJoinGame.addActionListener(this);
+        btnStartGame.addActionListener(this);
+    }
 
+    @Override
+    public void actionPerformed(ActionEvent ev) {
+        Object src = ev.getSource();
+        if (src == btnJoinGame) {
+        } else if (src == btnStartGame) {
+        }
     }
 }
