@@ -107,12 +107,13 @@ public class PuzzleBoard extends JFrame {
      * Data una collezione di Tile, inserisce al'interno del JPanel board ogni Tile e aggiunge un listener per le eventuali modifiche
      */
     private void paintPuzzle() {
-        this.board.removeAll();
-
-        Collections.sort(tiles);
-
-        tiles.forEach(tile -> {
-            final TileButton btn = new TileButton(tile);
+        SwingUtilities.invokeLater(() -> {
+    	this.board.removeAll();
+    	
+    	Collections.sort(tiles);
+    	
+    	tiles.forEach(tile -> {
+    		final TileButton btn = new TileButton(tile);
             this.board.add(btn);
             btn.setBorder(BorderFactory.createLineBorder(Color.gray));
             btn.addActionListener(actionListener -> {
@@ -120,10 +121,12 @@ public class PuzzleBoard extends JFrame {
                     puzzleActor.tell(new BoardActor.Swap(tile1, tile2));
                 });
             });
-        });
-        pack();
-        this.setVisible(true);
+    	});
+
+    	this.pack();
+    	this.setVisible(true);
         checkSolution();
+        });
     }
 
     public void updateTiles(Tile tile1, Tile tile2) {
@@ -135,9 +138,10 @@ public class PuzzleBoard extends JFrame {
     }
 
     private void checkSolution() {
-        if (tiles.stream().allMatch(Tile::isInRightPlace)) {
-            JOptionPane.showMessageDialog(this, "Puzzle Completed!", "", JOptionPane.INFORMATION_MESSAGE);
-        }
+    	if(tiles.stream().allMatch(Tile::isInRightPlace)) {
+    	    SwingUtilities.invokeLater(() ->
+                    JOptionPane.showMessageDialog(this, "Puzzle Completed!", "", JOptionPane.INFORMATION_MESSAGE));
+    	}
     }
 
     private ArrayList<BoardActor.TileRaw> createTileRaw(ArrayList<Tile> tiles) {

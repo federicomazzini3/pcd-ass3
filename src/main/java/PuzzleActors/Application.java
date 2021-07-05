@@ -26,6 +26,7 @@ public class Application {
                 if (cluster.selfMember().hasRole("firstPlayer")) {
                     context.spawn(PuzzleService.create(initParamsKey), "player");
                     context.spawn(InitService.create(initParamsKey, 3, 5, "https://i.ytimg.com/vi/JNslcFZw7Zo/maxresdefault.jpg"), "initService");
+
                 }
 
                 return Behaviors.empty();
