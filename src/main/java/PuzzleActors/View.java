@@ -23,18 +23,18 @@ public class View extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(428, 396);
+        this.setSize(362, 276);
         
         JPanel panel = new JPanel();
-        panel.setBounds(0, 0, 411, 356);
+        panel.setBounds(0, 0, 351, 240);
         
         JButton btnJoinGame = new JButton("Join a game");
-        btnJoinGame.setBounds(280, 320, 109, 25);
-        btnJoinGame.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        btnJoinGame.setBounds(195, 186, 148, 43);
+        btnJoinGame.setFont(new Font("Tahoma", Font.PLAIN, 16));
         
         JButton btnStartGame = new JButton("Start new game");
-        btnStartGame.setBounds(137, 320, 133, 25);
-        btnStartGame.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        btnStartGame.setBounds(20, 186, 165, 43);
+        btnStartGame.setFont(new Font("Tahoma", Font.PLAIN, 16));
         btnStartGame.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         	}
