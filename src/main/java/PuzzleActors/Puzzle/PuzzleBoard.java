@@ -100,6 +100,7 @@ public class PuzzleBoard extends JFrame {
 
 	/** Data una collezione di Tile, inserisce al'interno del JPanel board ogni Tile e aggiunge un listener per le eventuali modifiche*/
     private void paintPuzzle() {
+        SwingUtilities.invokeLater(() -> {
     	this.board.removeAll();
     	
     	Collections.sort(tiles);
@@ -114,10 +115,11 @@ public class PuzzleBoard extends JFrame {
             	});
             });
     	});
-    	
-    	pack();
+
+    	this.pack();
     	this.setVisible(true);
         checkSolution();
+        });
     }
 
     public void updateTiles(Tile tile1, Tile tile2){
@@ -130,7 +132,8 @@ public class PuzzleBoard extends JFrame {
 
     private void checkSolution() {
     	if(tiles.stream().allMatch(Tile::isInRightPlace)) {
-    		JOptionPane.showMessageDialog(this, "Puzzle Completed!", "", JOptionPane.INFORMATION_MESSAGE);
+    	    SwingUtilities.invokeLater(() ->
+                    JOptionPane.showMessageDialog(this, "Puzzle Completed!", "", JOptionPane.INFORMATION_MESSAGE));
     	}
     }
 
