@@ -1,13 +1,11 @@
 package PuzzleActors;
 
-import akka.actor.AddressFromURIString;
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.typed.Cluster;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import scala.Int;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -27,7 +25,8 @@ public class Application {
 
                 if (cluster.selfMember().hasRole("firstPlayer")) {
                     context.spawn(PuzzleService.create(initParamsKey), "player");
-                    context.spawn(InitService.create(initParamsKey, 2, 4, "https://i.ytimg.com/vi/JNslcFZw7Zo/maxresdefault.jpg"), "initService");
+                    context.spawn(InitService.create(initParamsKey, 3, 5, "https://i.ytimg.com/vi/JNslcFZw7Zo/maxresdefault.jpg"), "initService");
+
                 }
 
                 return Behaviors.empty();
@@ -37,9 +36,14 @@ public class Application {
 
     public static void main(String[] args) throws UnknownHostException {
 
-        if (args.length == 0) {
+        /*if (args.length == 0) {
             startup("firstPlayer", "localhost:25251", "localhost", 25251, 25251);
             startup("player", "localhost:25251", "localhost", 25252, 25252);
+            startup("player", "localhost:25251", "localhost", 0, 0);
+            startup("player", "localhost:25251", "localhost", 0, 0);
+            startup("player", "localhost:25251", "localhost", 0, 0);
+            startup("player", "localhost:25251", "localhost", 0, 0);
+            startup("player", "localhost:25251", "localhost", 0, 0);
             startup("player", "localhost:25251", "localhost", 0, 0);
             startup("player", "localhost:25251", "localhost", 0, 0);
         } else {
@@ -47,7 +51,9 @@ public class Application {
                 startup(args[0], args[1], args[2], Integer.parseInt(args[3]), Integer.parseInt(args[4]));
             } else
                 throw new IllegalArgumentException("Usage: role port");
-        }
+        }*/
+        View view = new View();
+        view.setVisible(true);
     }
 
     private static void startup(String role, String friendNode, String publicIPAddress, int publicPort, int localPort) throws UnknownHostException {
@@ -77,7 +83,7 @@ public class Application {
         overrides.put("akka.cluster.roles", Collections.singletonList(role));
 
         Config config = ConfigFactory.parseMap(overrides)
-                .withFallback(ConfigFactory.load("transformation"));
+                .withFallback(ConfigFactory.load("Puzzle/transformation"));
 
         ActorSystem<Void> system = ActorSystem.create(RootBehavior.create(), "ClusterSystem", config);
     }
