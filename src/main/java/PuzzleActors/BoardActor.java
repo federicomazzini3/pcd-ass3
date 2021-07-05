@@ -2,6 +2,8 @@ package PuzzleActors;
 
 import PuzzleActors.Puzzle.PuzzleBoard;
 import PuzzleActors.Puzzle.Tile;
+import akka.actor.CoordinatedShutdown;
+import akka.actor.PoisonPill;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
@@ -120,8 +122,8 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
         this.node = DistributedData.get(context.getSystem()).selfUniqueAddress();
 
         this.replicatorAdapter.subscribe(this.key, InternalSubscribeResponse::new);
-
-        this.puzzle = new PuzzleBoard(n, m, imagePath, this.getContext().getSelf());
+        String nodeAddress = node.uniqueAddress().address().getHost().get() + ":" + node.uniqueAddress().address().getPort().get();
+        this.puzzle = new PuzzleBoard(n, m, imagePath, nodeAddress, this.getContext().getSelf());
         this.getContext().getSelf().tell(new GetTiles());
     }
 

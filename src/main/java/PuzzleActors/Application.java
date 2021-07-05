@@ -14,10 +14,10 @@ import java.util.*;
 public class Application {
 
     private static class RootBehavior {
-        static Behavior<Void> create() {
+        static Behavior<Void> create(int rows, int cols, String imageUrl) {
             return Behaviors.setup(context -> {
                 Cluster cluster = Cluster.get(context.getSystem());
-                String initParamsKey = "initParams";
+                final String initParamsKey = "initParams";
 
                 if (cluster.selfMember().hasRole("player")) {
                     context.spawn(PuzzleService.create(initParamsKey), "player");
@@ -25,7 +25,7 @@ public class Application {
 
                 if (cluster.selfMember().hasRole("firstPlayer")) {
                     context.spawn(PuzzleService.create(initParamsKey), "player");
-                    context.spawn(InitService.create(initParamsKey, 3, 5, "https://i.ytimg.com/vi/JNslcFZw7Zo/maxresdefault.jpg"), "initService");
+                    context.spawn(InitService.create(initParamsKey, rows, cols, imageUrl), "initService");
 
                 }
 
@@ -34,34 +34,17 @@ public class Application {
         }
     }
 
-    public static void main(String[] args) throws UnknownHostException {
-
-        /*if (args.length == 0) {
-            startup("firstPlayer", "localhost:25251", "localhost", 25251, 25251);
-            startup("player", "localhost:25251", "localhost", 25252, 25252);
-            startup("player", "localhost:25251", "localhost", 0, 0);
-            startup("player", "localhost:25251", "localhost", 0, 0);
-            startup("player", "localhost:25251", "localhost", 0, 0);
-            startup("player", "localhost:25251", "localhost", 0, 0);
-            startup("player", "localhost:25251", "localhost", 0, 0);
-            startup("player", "localhost:25251", "localhost", 0, 0);
-            startup("player", "localhost:25251", "localhost", 0, 0);
-        } else {
-            if (args.length == 5) {
-                startup(args[0], args[1], args[2], Integer.parseInt(args[3]), Integer.parseInt(args[4]));
-            } else
-                throw new IllegalArgumentException("Usage: role port");
-        }*/
+    public static void main(String[] args){
         View view = new View();
         view.setVisible(true);
     }
 
-    public static void startup(String role, String friendNode, String publicIPAddress, int publicPort, int localPort) throws UnknownHostException {
+    public static ActorSystem<Void> startup(String role, int rows, int cols, String imageUrl, String friendNode, String publicIPAddress, int publicPort, int localPort) throws UnknownHostException {
         // Override the configuration
         Map<String, Object> overrides = new HashMap<>();
 
         String localIpAddress = "localhost";
-        if(!publicIPAddress.equals("localhost"))
+        if(!(publicIPAddress.equals("localhost") || publicIPAddress.equals("127.0.0.1")))
             localIpAddress = InetAddress.getLocalHost().getHostAddress();
 
         overrides.put("akka.remote.artery.canonical.hostname", publicIPAddress);
@@ -85,6 +68,6 @@ public class Application {
         Config config = ConfigFactory.parseMap(overrides)
                 .withFallback(ConfigFactory.load("Puzzle/transformation"));
 
-        ActorSystem<Void> system = ActorSystem.create(RootBehavior.create(), "ClusterSystem", config);
+        return ActorSystem.create(RootBehavior.create(rows, cols, imageUrl), "ClusterSystem", config);
     }
 }

@@ -1,23 +1,32 @@
 package PuzzleActors;
 
+import akka.actor.typed.ActorSystem;
+
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.Font;
-import java.awt.Cursor;
 import java.net.UnknownHostException;
 
 public class View extends JFrame  implements ActionListener {
-	private JTextField txtFldPublicAddress;
-	private JTextField txtFldPublicPort;
-	private JTextField txtFldLocalPort;
-	private JTextField txtFldFriendAddress;
-	private JLabel lblPublicAddress;
-	private JLabel lblPublicPort;
-	private JLabel lblLocalPort;
-	private JLabel lblFriendAddress;
-    private JButton btnStartGame;
-    private JButton btnJoinGame;
+    private final JTextField txtFldRows;
+    private final JTextField txtFldColumns;
+    private final JTextField txtFldImageUrl;
+    private final JTextField txtFldPublicAddress;
+	private final JTextField txtFldPublicPort;
+	private final JTextField txtFldLocalPort;
+	private final JTextField txtFldFriendAddress;
+    private final JLabel lblRows;
+    private final JLabel lblColumns;
+    private final JLabel lblImageUrl;
+	private final JLabel lblPublicAddress;
+	private final JLabel lblPublicPort;
+	private final JLabel lblLocalPort;
+	private final JLabel lblFriendAddress;
+    private final JButton btnStartGame;
+    private final JButton btnJoinGame;
+    private final JButton btnStop;
+    private ActorSystem<Void> system;
 
     public View() {
     	setResizable(false);
@@ -25,68 +34,109 @@ public class View extends JFrame  implements ActionListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(362, 276);
+        this.setSize(362, 390);
         
         JPanel panel = new JPanel();
-        panel.setBounds(0, 0, 351, 240);
-        
-        btnJoinGame = new JButton("Join a game");
-        btnJoinGame.setBounds(195, 186, 148, 43);
-        btnJoinGame.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        
-        btnStartGame = new JButton("Start new game");
-        btnStartGame.setBounds(20, 186, 165, 43);
-        btnStartGame.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        btnStartGame.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        	}
-        });
+        panel.setBounds(0, 0, 362, 390);
         getContentPane().setLayout(null);
+
+        txtFldRows = new JTextField();
+        txtFldRows.setText("3");
+        txtFldRows.setBounds(137, 30, 206, 23);
+        txtFldRows.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        txtFldRows.setColumns(10);
+
+        lblRows = new JLabel("Rows");
+        lblRows.setBounds(20, 30, 107, 23);
+        lblRows.setFont(new Font("Tahoma", Font.PLAIN, 14));
+
+        txtFldColumns = new JTextField();
+        txtFldColumns.setText("5");
+        txtFldColumns.setBounds(137, 64, 206, 23);
+        txtFldColumns.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        txtFldColumns.setColumns(10);
+
+        lblColumns = new JLabel("Columns");
+        lblColumns.setBounds(20, 64, 107, 23);
+        lblColumns.setFont(new Font("Tahoma", Font.PLAIN, 14));
+
+        txtFldImageUrl = new JTextField();
+        txtFldImageUrl.setText("https://i.ytimg.com/vi/JNslcFZw7Zo/maxresdefault.jpg");
+        txtFldImageUrl.setBounds(137, 98, 206, 23);
+        txtFldImageUrl.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        txtFldImageUrl.setColumns(10);
+
+        lblImageUrl = new JLabel("Image Url");
+        lblImageUrl.setBounds(20, 98, 107, 23);
+        lblImageUrl.setFont(new Font("Tahoma", Font.PLAIN, 14));
         
         txtFldPublicAddress = new JTextField();
-        txtFldPublicAddress.setBounds(137, 30, 206, 23);
-        txtFldPublicAddress.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-        txtFldPublicAddress.setToolTipText("");
+        txtFldPublicAddress.setText("127.0.0.1");
+        txtFldPublicAddress.setBounds(137, 132, 206, 23);
         txtFldPublicAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldPublicAddress.setColumns(10);
+
+        lblPublicAddress = new JLabel("Public Address");
+        lblPublicAddress.setBounds(20, 132, 107, 20);
+        lblPublicAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
         
         txtFldPublicPort = new JTextField();
-        txtFldPublicPort.setBounds(137, 64, 206, 23);
+        txtFldPublicPort.setText("25251");
+        txtFldPublicPort.setBounds(137, 166, 206, 23);
         txtFldPublicPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldPublicPort.setColumns(10);
+
+        lblPublicPort = new JLabel("Public port");
+        lblPublicPort.setBounds(20, 164, 107, 23);
+        lblPublicPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
         
         txtFldLocalPort = new JTextField();
-        txtFldLocalPort.setBounds(137, 98, 206, 23);
+        txtFldLocalPort.setText("25251");
+        txtFldLocalPort.setBounds(137, 200, 206, 23);
         txtFldLocalPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldLocalPort.setColumns(10);
+
+        lblLocalPort = new JLabel("Local port");
+        lblLocalPort.setBounds(20, 200, 107, 23);
+        lblLocalPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
         
         txtFldFriendAddress = new JTextField();
-        txtFldFriendAddress.setBounds(137, 132, 206, 23);
+        txtFldFriendAddress.setText("127.0.0.1:25251");
+        txtFldFriendAddress.setBounds(137, 234, 206, 23);
         txtFldFriendAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldFriendAddress.setColumns(10);
         
-        lblPublicAddress = new JLabel("Public Address");
-        lblPublicAddress.setBounds(20, 30, 107, 20);
-        lblPublicAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        
-        lblPublicPort = new JLabel("Public port");
-        lblPublicPort.setBounds(20, 66, 107, 17);
-        lblPublicPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        
-        lblLocalPort = new JLabel("Local port");
-        lblLocalPort.setBounds(20, 100, 107, 17);
-        lblLocalPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        
         lblFriendAddress = new JLabel("Friend Address");
-        lblFriendAddress.setBounds(20, 134, 107, 17);
+        lblFriendAddress.setBounds(20, 234, 107, 23);
         lblFriendAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
+
+        btnJoinGame = new JButton("Join a game");
+        btnJoinGame.setBounds(185, 265, 165, 41);
+        btnJoinGame.setFont(new Font("Tahoma", Font.PLAIN, 14));
+
+        btnStartGame = new JButton("Start new game");
+        btnStartGame.setBounds(15, 265, 165, 41);
+        btnStartGame.setFont(new Font("Tahoma", Font.PLAIN, 14));
+
+        btnStop = new JButton("Stop game");
+        btnStop.setBounds(15, 310, 335, 41);
+        btnStop.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        btnStop.setEnabled(false);
+
         panel.setLayout(null);
         panel.add(btnStartGame);
         panel.add(btnJoinGame);
+        panel.add(btnStop);
         panel.add(lblPublicAddress);
+        panel.add(lblRows);
+        panel.add(lblColumns);
+        panel.add(lblImageUrl);
         panel.add(lblPublicPort);
         panel.add(lblLocalPort);
         panel.add(lblFriendAddress);
+        panel.add(txtFldRows);
+        panel.add(txtFldColumns);
+        panel.add(txtFldImageUrl);
         panel.add(txtFldFriendAddress);
         panel.add(txtFldLocalPort);
         panel.add(txtFldPublicPort);
@@ -95,33 +145,70 @@ public class View extends JFrame  implements ActionListener {
         this.setVisible(true);
         btnJoinGame.addActionListener(this);
         btnStartGame.addActionListener(this);
+        btnStop.addActionListener(this);
     }
 
     @Override
     public void actionPerformed(ActionEvent ev) {
         String publicAddress = txtFldPublicAddress.getText();
-        int publicPort = Integer.parseInt(txtFldPublicPort.getText());
-        int localPort = Integer.parseInt(txtFldLocalPort.getText());
+        String publicPort = txtFldPublicPort.getText();
+        String localPort = txtFldLocalPort.getText();
         String friendAddress = txtFldFriendAddress.getText();
         String completeAddress = publicAddress + ":" + publicPort;
+        String rows = txtFldRows.getText();
+        String cols = txtFldColumns.getText();
+        String imageUrl = txtFldImageUrl.getText();
 
         Object src = ev.getSource();
         if (src == btnJoinGame) {
-            if(!(txtFldPublicAddress.getText().isEmpty() && txtFldPublicPort.getText().isEmpty() && txtFldLocalPort.getText().isEmpty() && txtFldFriendAddress.getText().isEmpty())){
+            if(requiredFieldJoinGame()){
                 try {
-                    Application.startup("player", friendAddress, publicAddress, publicPort, localPort);
+                    system = Application.startup("player", 0, 0, "", friendAddress, publicAddress, Integer.parseInt(publicPort), Integer.parseInt(localPort));
+                    SwingUtilities.invokeLater(() -> {
+                        this.btnStop.setEnabled(true);
+                        this.btnStartGame.setEnabled(false);
+                        this.btnJoinGame.setEnabled(false);
+                    });
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
             }
         } else if (src == btnStartGame) {
-            if(!(txtFldPublicAddress.getText().isEmpty() && txtFldPublicPort.getText().isEmpty() && txtFldLocalPort.getText().isEmpty())){
+            if(requiredFieldStartGame()){
                 try {
-                    Application.startup("firstPlayer", completeAddress, publicAddress, publicPort, localPort);
+                    system = Application.startup("firstPlayer", Integer.parseInt(rows), Integer.parseInt(cols), imageUrl, completeAddress, publicAddress, Integer.parseInt(publicPort), Integer.parseInt(localPort));
+                    SwingUtilities.invokeLater(() -> {
+                        this.btnStop.setEnabled(true);
+                        this.btnStartGame.setEnabled(false);
+                        this.btnJoinGame.setEnabled(false);
+                    });
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
             }
+        }else if (src == btnStop) {
+            system.terminate();
+            SwingUtilities.invokeLater(() -> {
+                this.btnStop.setEnabled(false);
+                this.btnStartGame.setEnabled(true);
+                this.btnJoinGame.setEnabled(true);
+            });
         }
+    }
+
+    private boolean requiredFieldStartGame(){
+        return !(txtFldPublicAddress.getText().isEmpty() &&
+                txtFldPublicPort.getText().isEmpty() &&
+                txtFldLocalPort.getText().isEmpty() &&
+                txtFldRows.getText().isEmpty() &&
+                txtFldColumns.getText().isEmpty() &&
+                txtFldImageUrl.getText().isEmpty());
+    }
+
+    private boolean requiredFieldJoinGame(){
+        return !(txtFldPublicAddress.getText().isEmpty() &&
+                txtFldPublicPort.getText().isEmpty() &&
+                txtFldLocalPort.getText().isEmpty() &&
+                txtFldFriendAddress.getText().isEmpty());
     }
 }

@@ -2,13 +2,10 @@ package PuzzleActors.Puzzle;
 
 import PuzzleActors.BoardActor;
 import akka.actor.typed.ActorRef;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.*;
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -27,16 +24,15 @@ public class PuzzleBoard extends JFrame {
     private ActorRef<BoardActor.Command> puzzleActor;
     private final JPanel board;
 
-    public PuzzleBoard(final int rows, final int columns, String imagePath, ActorRef<BoardActor.Command> puzzleActor) {
+    public PuzzleBoard(final int rows, final int columns, String imagePath, String nodeAddress, ActorRef<BoardActor.Command> puzzleActor) {
         this.rows = rows;
         this.columns = columns;
         this.imagePath = imagePath;
-        this.imageRaw = imageRaw;
         this.puzzleActor = puzzleActor;
 
-        setTitle("PuzzleCentralized");
+        setTitle("Puzzle decentralized - " + nodeAddress);
         setResizable(false);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         this.board = new JPanel();
         board.setBorder(BorderFactory.createLineBorder(Color.gray));

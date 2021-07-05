@@ -47,13 +47,13 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
         }
     }
 
-    public static Behavior<Command> create(String initParamsKey) {
+    public static Behavior<Command> create(String nodeAddress) {
         System.out.println("\n Create PuzzleService with first:\n");
         return Behaviors.setup(
                 ctx ->
                         DistributedData.withReplicatorMessageAdapter(
                                 (ReplicatorMessageAdapter<Command, LWWRegister<InitService.InitParams>> replicatorAdapter) ->
-                                        new PuzzleService(ctx, replicatorAdapter, initParamsKey)));
+                                        new PuzzleService(ctx, replicatorAdapter, nodeAddress)));
     }
 
     // adapter that turns the response messages from the replicator into our own protocol
