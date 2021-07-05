@@ -11,8 +11,6 @@ import akka.cluster.ddata.typed.javadsl.DistributedData;
 import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
 
-import java.time.Duration;
-
 public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
     interface Command {
     }
@@ -85,7 +83,6 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
         return newReceiveBuilder()
                 .onMessage(InternalUpdateResponse.class, msg -> Behaviors.same())
                 .onMessage(Start.class, this::onStart)
-                .onMessage(InternalGetResponse.class, this::onInternalGetResponse)
                 .onMessage(InternalSubscribeResponse.class, this::onInternalSubscribeResponse)
                 .build();
     }
@@ -95,19 +92,6 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
             this.boardActor = getContext().spawn(BoardActor.create(cachedValue.n, cachedValue.m, cachedValue.imagePath), "boardActor");
         }
         return this;
-    }
-
-    private Behavior<PuzzleService.Command> onInternalGetResponse(PuzzleService.InternalGetResponse msg) {
-        if (msg.rsp instanceof Replicator.GetSuccess) {
-            System.out.println("\n onInternalGetResponse Success\n");
-            //int value = ((Replicator.GetSuccess<?>) msg.rsp).get(key).getValue().intValue();
-            //msg.replyTo.tell(value);
-        } else {
-            // not dealing with failures
-            System.out.println("\n onInternalGetResponse Failed\n");
-            //this.puzzle.createAndLoadTiles();
-        }
-        return Behaviors.same();
     }
 
     private Behavior<Command> onInternalSubscribeResponse(InternalSubscribeResponse msg) {
