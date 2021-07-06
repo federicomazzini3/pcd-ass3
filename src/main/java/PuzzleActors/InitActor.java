@@ -89,6 +89,6 @@ public class InitActor extends AbstractBehavior<InitActor.Command> {
                                 askReplyTo,
                                 curr -> LWWRegister.create(node, initParams)),
                 InternalUpdateResponse::new);
-        return this;
+        return Behaviors.stopped();
     }
 }
