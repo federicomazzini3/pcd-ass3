@@ -10,6 +10,7 @@ import akka.cluster.ddata.*;
 import akka.cluster.ddata.typed.javadsl.DistributedData;
 import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
+import scala.Int;
 
 public class PuzzleActor extends AbstractBehavior<PuzzleActor.Command> {
     interface Command {}

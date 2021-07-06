@@ -137,8 +137,9 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     }
 
     private Behavior<Command> onGetTiles(GetTiles command) {
+        System.out.println("\nGet Tiles");
         this.replicatorAdapter.askGet(
-                askReplyTo -> new Replicator.Get<>(key, new Replicator.ReadMajority(Duration.ofSeconds(3)), askReplyTo),
+                askReplyTo -> new Replicator.Get<>(key, new Replicator.ReadAll(Duration.ofSeconds(3)), askReplyTo),
                 rsp -> new InternalGetResponse(rsp, this.getContext().getSelf()));
         return Behaviors.same();
     }
@@ -151,7 +152,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                         new Replicator.Update<>(
                                 key,
                                 LWWRegister.create(node, new Tiles(new ArrayList<>())),
-                                Replicator.writeLocal(),
+                                new Replicator.WriteMajority(Duration.ofSeconds(5)),
                                 askReplyTo,
                                 curr -> LWWRegister.create(node, tiles)),
                 BoardActor.InternalUpdateResponse::new);
@@ -160,10 +161,14 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     private Behavior<Command> onInternalGetResponse(InternalGetResponse msg) {
         if (msg.rsp instanceof Replicator.GetSuccess) {
-            System.out.println("\n onInternalGetResponse Success\n");
+            System.out.println("\nGetResponse Success\n");
+            LWWRegister<Tiles> tiles = ((Replicator.GetSuccess<LWWRegister<Tiles>>) msg.rsp).get(key);
+            cachedValue = tiles.getValue();
+            System.out.println("\nCreo le prime tiles\n" + this.getContext().getSelf().toString() + "Numero tiles: \n " + cachedValue.tiles.size());
+            this.puzzle.refreshTiles(cachedValue);
             return this;
         } else {
-            System.out.println("\n onInternalGetResponse Failed\nNeed new tiles");
+            System.out.println("\nGetResponse Failed: need new tiles");
             this.puzzle.createAndLoadTiles();
             return Behaviors.same();
         }
@@ -195,7 +200,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                         new Replicator.Update<>(
                                 key,
                                 LWWRegister.create(node, cachedValue),
-                                Replicator.writeLocal(),
+                                new Replicator.WriteMajority(Duration.ofSeconds(5)),
                                 askReplyTo,
                                 curr -> {
                                     System.out.println("\n cached value: " + cachedValue);

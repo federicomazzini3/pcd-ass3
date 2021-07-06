@@ -40,7 +40,7 @@ public class InitActor extends AbstractBehavior<InitActor.Command> {
     }
 
     public static Behavior<Command> create(String registerKey, int n, int m, String imagePath) {
-        System.out.println("\n Create InitService: \n");
+        System.out.println("\n Create InitActor: \n");
         return Behaviors.setup(
                 ctx ->
                         DistributedData.withReplicatorMessageAdapter(
@@ -74,7 +74,10 @@ public class InitActor extends AbstractBehavior<InitActor.Command> {
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(InitParams.class, this::onInitialize)
-                .onMessage(InternalUpdateResponse.class, msg -> Behaviors.same())
+                .onMessage(InternalUpdateResponse.class, msg -> {
+                    System.out.println(msg.rsp);
+                    return Behaviors.same();
+                })
                 .build();
     }
 
@@ -84,11 +87,11 @@ public class InitActor extends AbstractBehavior<InitActor.Command> {
                 askReplyTo ->
                         new Replicator.Update<>(
                                 key,
-                                LWWRegister.create(node, new InitParams(0, 0, "")),
+                                LWWRegister.create(node, initParams),
                                 Replicator.writeLocal(),
                                 askReplyTo,
                                 curr -> LWWRegister.create(node, initParams)),
                 InternalUpdateResponse::new);
-        return Behaviors.stopped();
+        return Behaviors.same();
     }
 }
