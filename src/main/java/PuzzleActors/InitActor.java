@@ -13,7 +13,7 @@ import akka.cluster.ddata.typed.javadsl.DistributedData;
 import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
 
-public class InitService extends AbstractBehavior<InitService.Command> {
+public class InitActor extends AbstractBehavior<InitActor.Command> {
 
     interface Command { }
 
@@ -45,7 +45,7 @@ public class InitService extends AbstractBehavior<InitService.Command> {
                 ctx ->
                         DistributedData.withReplicatorMessageAdapter(
                                 (ReplicatorMessageAdapter<Command, LWWRegister<InitParams>> replicatorAdapter) ->
-                                        new InitService(ctx, replicatorAdapter, registerKey, n, m, imagePath)));
+                                        new InitActor(ctx, replicatorAdapter, registerKey, n, m, imagePath)));
     }
 
 
@@ -53,7 +53,7 @@ public class InitService extends AbstractBehavior<InitService.Command> {
     private final SelfUniqueAddress node;
     private final Key<LWWRegister<InitParams>> key;
 
-    private InitService(
+    private InitActor(
             ActorContext<Command> context,
             ReplicatorMessageAdapter<Command, LWWRegister<InitParams>> replicatorAdapter,
             String registerKey,

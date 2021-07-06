@@ -11,7 +11,7 @@ import akka.cluster.ddata.typed.javadsl.DistributedData;
 import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
 
-public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
+public class PuzzleActor extends AbstractBehavior<PuzzleActor.Command> {
     interface Command {}
 
     public class Start implements Command { }
@@ -19,17 +19,17 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
     private interface InternalCommand extends Command { }
 
     private static class InternalUpdateResponse implements InternalCommand {
-        final Replicator.UpdateResponse<LWWRegister<InitService.InitParams>> rsp;
+        final Replicator.UpdateResponse<LWWRegister<InitActor.InitParams>> rsp;
 
-        InternalUpdateResponse(Replicator.UpdateResponse<LWWRegister<InitService.InitParams>> rsp) {
+        InternalUpdateResponse(Replicator.UpdateResponse<LWWRegister<InitActor.InitParams>> rsp) {
             this.rsp = rsp;
         }
     }
 
     private static final class InternalSubscribeResponse implements InternalCommand {
-        final Replicator.SubscribeResponse<LWWRegister<InitService.InitParams>> rsp;
+        final Replicator.SubscribeResponse<LWWRegister<InitActor.InitParams>> rsp;
 
-        InternalSubscribeResponse(Replicator.SubscribeResponse<LWWRegister<InitService.InitParams>> rsp) {
+        InternalSubscribeResponse(Replicator.SubscribeResponse<LWWRegister<InitActor.InitParams>> rsp) {
             this.rsp = rsp;
         }
     }
@@ -39,21 +39,21 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
         return Behaviors.setup(
                 ctx ->
                         DistributedData.withReplicatorMessageAdapter(
-                                (ReplicatorMessageAdapter<Command, LWWRegister<InitService.InitParams>> replicatorAdapter) ->
-                                        new PuzzleService(ctx, replicatorAdapter, nodeAddress)));
+                                (ReplicatorMessageAdapter<Command, LWWRegister<InitActor.InitParams>> replicatorAdapter) ->
+                                        new PuzzleActor(ctx, replicatorAdapter, nodeAddress)));
     }
 
     // adapter that turns the response messages from the replicator into our own protocol
-    private final ReplicatorMessageAdapter<Command, LWWRegister<InitService.InitParams>> replicatorAdapter;
+    private final ReplicatorMessageAdapter<Command, LWWRegister<InitActor.InitParams>> replicatorAdapter;
     private final SelfUniqueAddress node;
-    private final Key<LWWRegister<InitService.InitParams>> key;
+    private final Key<LWWRegister<InitActor.InitParams>> key;
 
     private ActorRef<BoardActor.Command> boardActor;
-    private InitService.InitParams cachedValue;
+    private InitActor.InitParams cachedValue;
 
-    private PuzzleService(
+    private PuzzleActor(
             ActorContext<Command> context,
-            ReplicatorMessageAdapter<Command, LWWRegister<InitService.InitParams>> replicatorAdapter,
+            ReplicatorMessageAdapter<Command, LWWRegister<InitActor.InitParams>> replicatorAdapter,
             String initParamsKey) {
         super(context);
 
@@ -83,7 +83,7 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
 
     private Behavior<Command> onInternalSubscribeResponse(InternalSubscribeResponse msg) {
         if (msg.rsp instanceof Replicator.Changed) {
-            LWWRegister<InitService.InitParams> initParams = ((Replicator.Changed<LWWRegister<InitService.InitParams>>) msg.rsp).get(key);
+            LWWRegister<InitActor.InitParams> initParams = ((Replicator.Changed<LWWRegister<InitActor.InitParams>>) msg.rsp).get(key);
             cachedValue = initParams.getValue();
             System.out.println("\n " + this.getContext().getSelf() + " Parametri iniziali: " + cachedValue.n + " " + cachedValue.m + " " + cachedValue.imagePath);
             replicatorAdapter.unsubscribe(key);

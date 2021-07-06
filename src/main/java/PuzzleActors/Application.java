@@ -20,12 +20,12 @@ public class Application {
                 final String initParamsKey = "initParams";
 
                 if (cluster.selfMember().hasRole("player")) {
-                    context.spawn(PuzzleService.create(initParamsKey), "player");
+                    context.spawn(PuzzleActor.create(initParamsKey), "player");
                 }
 
                 if (cluster.selfMember().hasRole("firstPlayer")) {
-                    context.spawn(PuzzleService.create(initParamsKey), "player");
-                    context.spawn(InitService.create(initParamsKey, rows, cols, imageUrl), "initService");
+                    context.spawn(PuzzleActor.create(initParamsKey), "player");
+                    context.spawn(InitActor.create(initParamsKey, rows, cols, imageUrl), "initService");
                 }
                 return Behaviors.empty();
             });
@@ -33,8 +33,8 @@ public class Application {
     }
 
     public static void main(String[] args){
-        View view = new View();
-        view.display(true);
+        InitialView initialView = new InitialView();
+        initialView.display(true);
     }
 
     public static ActorSystem<Void> startup(String role, int rows, int cols, String imageUrl, String friendNode, String publicIPAddress, int publicPort, int localPort) throws UnknownHostException {
