@@ -33,8 +33,8 @@ public class Application {
     }
 
     public static void main(String[] args){
-        InitialView initialView = new InitialView();
-        initialView.display(true);
+        View view = new View();
+        view.display(true);
     }
 
     public static ActorSystem<Void> startup(String role, int rows, int cols, String imageUrl, String friendNode, String publicIPAddress, int publicPort, int localPort) throws UnknownHostException {

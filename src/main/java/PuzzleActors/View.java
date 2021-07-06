@@ -8,7 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.net.UnknownHostException;
 
-public class InitialView extends JFrame implements ActionListener {
+public class View extends JFrame implements ActionListener {
     private final JTextField txtFldRows;
     private final JTextField txtFldColumns;
     private final JTextField txtFldImageUrl;
@@ -28,7 +28,7 @@ public class InitialView extends JFrame implements ActionListener {
     private final JButton btnStop;
     private ActorSystem<Void> system;
 
-    public InitialView() {
+    public View() {
         setResizable(false);
         setTitle("PuzzleCentralized");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
