@@ -30,14 +30,14 @@ public class View extends JFrame  implements ActionListener {
 
     public View() {
     	setResizable(false);
-        setTitle("PuzzleCentralized");
+        setTitle("PuzzleDecentralized");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(362, 390);
+        this.setSize(381, 420);
         
         JPanel panel = new JPanel();
-        panel.setBounds(0, 0, 362, 390);
+        panel.setBounds(0, 0, 377, 393);
         getContentPane().setLayout(null);
 
         txtFldRows = new JTextField();
@@ -111,15 +111,15 @@ public class View extends JFrame  implements ActionListener {
         lblFriendAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
         btnJoinGame = new JButton("Join a game");
-        btnJoinGame.setBounds(185, 265, 165, 41);
+        btnJoinGame.setBounds(185, 277, 165, 41);
         btnJoinGame.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
         btnStartGame = new JButton("Start new game");
-        btnStartGame.setBounds(15, 265, 165, 41);
+        btnStartGame.setBounds(15, 277, 165, 41);
         btnStartGame.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
         btnStop = new JButton("Stop game");
-        btnStop.setBounds(15, 310, 335, 41);
+        btnStop.setBounds(15, 329, 335, 41);
         btnStop.setFont(new Font("Tahoma", Font.PLAIN, 14));
         btnStop.setEnabled(false);
 
