@@ -8,34 +8,34 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.net.UnknownHostException;
 
-public class View extends JFrame  implements ActionListener {
+public class InitialView extends JFrame implements ActionListener {
     private final JTextField txtFldRows;
     private final JTextField txtFldColumns;
     private final JTextField txtFldImageUrl;
     private final JTextField txtFldPublicAddress;
-	private final JTextField txtFldPublicPort;
-	private final JTextField txtFldLocalPort;
-	private final JTextField txtFldFriendAddress;
+    private final JTextField txtFldPublicPort;
+    private final JTextField txtFldLocalPort;
+    private final JTextField txtFldFriendAddress;
     private final JLabel lblRows;
     private final JLabel lblColumns;
     private final JLabel lblImageUrl;
-	private final JLabel lblPublicAddress;
-	private final JLabel lblPublicPort;
-	private final JLabel lblLocalPort;
-	private final JLabel lblFriendAddress;
+    private final JLabel lblPublicAddress;
+    private final JLabel lblPublicPort;
+    private final JLabel lblLocalPort;
+    private final JLabel lblFriendAddress;
     private final JButton btnStartGame;
     private final JButton btnJoinGame;
     private final JButton btnStop;
     private ActorSystem<Void> system;
 
-    public View() {
-    	setResizable(false);
+    public InitialView() {
+        setResizable(false);
         setTitle("PuzzleCentralized");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(362, 390);
-        
+
         JPanel panel = new JPanel();
         panel.setBounds(0, 0, 362, 390);
         getContentPane().setLayout(null);
@@ -69,7 +69,7 @@ public class View extends JFrame  implements ActionListener {
         lblImageUrl = new JLabel("Image Url");
         lblImageUrl.setBounds(20, 98, 107, 23);
         lblImageUrl.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        
+
         txtFldPublicAddress = new JTextField();
         txtFldPublicAddress.setText("127.0.0.1");
         txtFldPublicAddress.setBounds(137, 132, 206, 23);
@@ -79,7 +79,7 @@ public class View extends JFrame  implements ActionListener {
         lblPublicAddress = new JLabel("Public Address");
         lblPublicAddress.setBounds(20, 132, 107, 20);
         lblPublicAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        
+
         txtFldPublicPort = new JTextField();
         txtFldPublicPort.setText("25251");
         txtFldPublicPort.setBounds(137, 166, 206, 23);
@@ -89,7 +89,7 @@ public class View extends JFrame  implements ActionListener {
         lblPublicPort = new JLabel("Public port");
         lblPublicPort.setBounds(20, 164, 107, 23);
         lblPublicPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        
+
         txtFldLocalPort = new JTextField();
         txtFldLocalPort.setText("25251");
         txtFldLocalPort.setBounds(137, 200, 206, 23);
@@ -99,13 +99,13 @@ public class View extends JFrame  implements ActionListener {
         lblLocalPort = new JLabel("Local port");
         lblLocalPort.setBounds(20, 200, 107, 23);
         lblLocalPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        
+
         txtFldFriendAddress = new JTextField();
         txtFldFriendAddress.setText("127.0.0.1:25251");
         txtFldFriendAddress.setBounds(137, 234, 206, 23);
         txtFldFriendAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldFriendAddress.setColumns(10);
-        
+
         lblFriendAddress = new JLabel("Friend Address");
         lblFriendAddress.setBounds(20, 234, 107, 23);
         lblFriendAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
@@ -148,6 +148,10 @@ public class View extends JFrame  implements ActionListener {
         btnStop.addActionListener(this);
     }
 
+    public void display(boolean flag){
+        SwingUtilities.invokeLater(() -> this.setVisible(flag));
+    }
+
     @Override
     public void actionPerformed(ActionEvent ev) {
         String publicAddress = txtFldPublicAddress.getText();
@@ -161,7 +165,7 @@ public class View extends JFrame  implements ActionListener {
 
         Object src = ev.getSource();
         if (src == btnJoinGame) {
-            if(requiredFieldJoinGame()){
+            if (requiredFieldJoinGame()) {
                 try {
                     system = Application.startup("player", 0, 0, "", friendAddress, publicAddress, Integer.parseInt(publicPort), Integer.parseInt(localPort));
                     SwingUtilities.invokeLater(() -> {
@@ -172,9 +176,9 @@ public class View extends JFrame  implements ActionListener {
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
-            }
+            } else System.out.println("Other field required");
         } else if (src == btnStartGame) {
-            if(requiredFieldStartGame()){
+            if (requiredFieldStartGame()) {
                 try {
                     system = Application.startup("firstPlayer", Integer.parseInt(rows), Integer.parseInt(cols), imageUrl, completeAddress, publicAddress, Integer.parseInt(publicPort), Integer.parseInt(localPort));
                     SwingUtilities.invokeLater(() -> {
@@ -185,8 +189,8 @@ public class View extends JFrame  implements ActionListener {
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
-            }
-        }else if (src == btnStop) {
+            } else System.out.println("Other field required");
+        } else if (src == btnStop) {
             system.terminate();
             SwingUtilities.invokeLater(() -> {
                 this.btnStop.setEnabled(false);
@@ -196,19 +200,19 @@ public class View extends JFrame  implements ActionListener {
         }
     }
 
-    private boolean requiredFieldStartGame(){
-        return !(txtFldPublicAddress.getText().isEmpty() &&
-                txtFldPublicPort.getText().isEmpty() &&
-                txtFldLocalPort.getText().isEmpty() &&
-                txtFldRows.getText().isEmpty() &&
-                txtFldColumns.getText().isEmpty() &&
-                txtFldImageUrl.getText().isEmpty());
+    private boolean requiredFieldStartGame() {
+        return !txtFldPublicAddress.getText().isEmpty() &&
+                !txtFldPublicPort.getText().isEmpty() &&
+                !txtFldLocalPort.getText().isEmpty() &&
+                !txtFldRows.getText().isEmpty() &&
+                !txtFldColumns.getText().isEmpty() &&
+                !txtFldImageUrl.getText().isEmpty();
     }
 
-    private boolean requiredFieldJoinGame(){
-        return !(txtFldPublicAddress.getText().isEmpty() &&
-                txtFldPublicPort.getText().isEmpty() &&
-                txtFldLocalPort.getText().isEmpty() &&
-                txtFldFriendAddress.getText().isEmpty());
+    private boolean requiredFieldJoinGame() {
+        return !txtFldPublicAddress.getText().isEmpty() &&
+                !txtFldPublicPort.getText().isEmpty() &&
+                !txtFldLocalPort.getText().isEmpty() &&
+                !txtFldFriendAddress.getText().isEmpty();
     }
 }

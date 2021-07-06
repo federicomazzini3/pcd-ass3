@@ -18,7 +18,6 @@ public class PuzzleBoard extends JFrame {
 
     final int rows, columns;
     String imagePath;
-    byte[] imageRaw;
     private ArrayList<Tile> tiles = new ArrayList<>();
     private SelectionManager selectionManager = new SelectionManager();
     private ActorRef<BoardActor.Command> puzzleActor;
@@ -48,7 +47,6 @@ public class PuzzleBoard extends JFrame {
         final BufferedImage image;
 
         try {
-            //image = ImageIO.read(new ByteArrayInputStream(this.imageRaw));
             image = ImageIO.read(new URL(imagePath));
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Could not load image", "Error", JOptionPane.ERROR_MESSAGE);
