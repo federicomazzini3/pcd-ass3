@@ -12,10 +12,7 @@ import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
 
 public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
-    interface Command {
-    }
-
-    public static class GetInitParams implements Command {}
+    interface Command {}
 
     public class Start implements Command { }
 
@@ -26,16 +23,6 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
 
         InternalUpdateResponse(Replicator.UpdateResponse<LWWRegister<InitService.InitParams>> rsp) {
             this.rsp = rsp;
-        }
-    }
-
-    private static class InternalGetResponse implements InternalCommand {
-        final Replicator.GetResponse<LWWRegister<InitService.InitParams>> rsp;
-        final ActorRef<PuzzleService.Command> replyTo;
-
-        InternalGetResponse(Replicator.GetResponse<LWWRegister<InitService.InitParams>> rsp, ActorRef<PuzzleService.Command> replyTo) {
-            this.rsp = rsp;
-            this.replyTo = replyTo;
         }
     }
 
@@ -103,7 +90,6 @@ public class PuzzleService extends AbstractBehavior<PuzzleService.Command> {
             this.getContext().getSelf().tell(new Start());
             return this;
         } else {
-            // no deletes
             return Behaviors.unhandled();
         }
     }

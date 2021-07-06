@@ -13,15 +13,11 @@ import akka.cluster.ddata.typed.javadsl.DistributedData;
 import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-
 public class InitService extends AbstractBehavior<InitService.Command> {
-    interface Command {
-    }
 
-    public static class InitParams implements Command, CborSerializable, BoardActor.Command {
+    interface Command { }
+
+    public static class InitParams implements Command, CborSerializable{
         int n;
         int m;
         String imagePath;
@@ -33,21 +29,12 @@ public class InitService extends AbstractBehavior<InitService.Command> {
         }
     }
 
-    private interface InternalCommand extends Command {
-    }
+    private interface InternalCommand extends Command { }
 
     private static class InternalUpdateResponse implements InternalCommand {
         final Replicator.UpdateResponse<LWWRegister<InitParams>> rsp;
 
         InternalUpdateResponse(Replicator.UpdateResponse<LWWRegister<InitParams>> rsp) {
-            this.rsp = rsp;
-        }
-    }
-
-    private static final class InternalSubscribeResponse implements InternalCommand {
-        final Replicator.SubscribeResponse<LWWRegister<InitParams>> rsp;
-
-        InternalSubscribeResponse(Replicator.SubscribeResponse<LWWRegister<InitParams>> rsp) {
             this.rsp = rsp;
         }
     }
@@ -61,7 +48,7 @@ public class InitService extends AbstractBehavior<InitService.Command> {
                                         new InitService(ctx, replicatorAdapter, registerKey, n, m, imagePath)));
     }
 
-    // adapter that turns the response messages from the replicator into our own protocol
+
     private final ReplicatorMessageAdapter<Command, LWWRegister<InitParams>> replicatorAdapter;
     private final SelfUniqueAddress node;
     private final Key<LWWRegister<InitParams>> key;
@@ -79,8 +66,6 @@ public class InitService extends AbstractBehavior<InitService.Command> {
         this.key = LWWRegisterKey.create(registerKey);
 
         this.node = DistributedData.get(context.getSystem()).selfUniqueAddress();
-
-        this.replicatorAdapter.subscribe(this.key, InternalSubscribeResponse::new);
         InitParams initParams = new InitParams(n, m, imagePath);
         this.getContext().getSelf().tell(initParams);
     }
@@ -93,6 +78,7 @@ public class InitService extends AbstractBehavior<InitService.Command> {
                 .build();
     }
 
+    //Inizializzazione dei parametri iniziali del puzzle all' interno della partita
     private Behavior<Command> onInitialize(InitParams initParams) {
         replicatorAdapter.askUpdate(
                 askReplyTo ->

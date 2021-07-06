@@ -26,9 +26,7 @@ public class Application {
                 if (cluster.selfMember().hasRole("firstPlayer")) {
                     context.spawn(PuzzleService.create(initParamsKey), "player");
                     context.spawn(InitService.create(initParamsKey, rows, cols, imageUrl), "initService");
-
                 }
-
                 return Behaviors.empty();
             });
         }
@@ -36,7 +34,7 @@ public class Application {
 
     public static void main(String[] args){
         View view = new View();
-        view.setVisible(true);
+        view.display(true);
     }
 
     public static ActorSystem<Void> startup(String role, int rows, int cols, String imageUrl, String friendNode, String publicIPAddress, int publicPort, int localPort) throws UnknownHostException {
@@ -47,15 +45,20 @@ public class Application {
         if(!(publicIPAddress.equals("localhost") || publicIPAddress.equals("127.0.0.1")))
             localIpAddress = InetAddress.getLocalHost().getHostAddress();
 
+        //Indirizzo e porta pubblica, visibile all'interno del cluster
         overrides.put("akka.remote.artery.canonical.hostname", publicIPAddress);
         overrides.put("akka.remote.artery.canonical.port", publicPort);
 
-
+        //Indirizzo e porta del singolo nodo sulla macchina ospitante
         overrides.put("akka.remote.artery.bind.hostname", localIpAddress);
         overrides.put("akka.remote.artery.bind.port", localPort);
 
+        //Indirizzo del nodo a cui collegarsi per richiedere il join alla partita
+        //Può essere se stesso, se inizia una nuova partita, oppure un player connesso a una partita
         overrides.put("akka.cluster.seed-nodes", Collections.singletonList("akka://ClusterSystem@" + friendNode));
 
+        //ruolo all' interno del cluster
+        overrides.put("akka.cluster.roles", Collections.singletonList(role));
 
         System.out.println("\nakka.remote.artery.canonical.hostname = " + publicIPAddress);
         System.out.println("\nakka.remote.artery.canonical.port = " + publicPort);
@@ -63,7 +66,6 @@ public class Application {
         System.out.println("\nakka.remote.artery.bind.port = " + localPort);
         System.out.println("\nakka.cluster.seed-nodes = " + Collections.singletonList("akka://ClusterSystem@" + friendNode));
 
-        overrides.put("akka.cluster.roles", Collections.singletonList(role));
 
         Config config = ConfigFactory.parseMap(overrides)
                 .withFallback(ConfigFactory.load("Puzzle/transformation"));

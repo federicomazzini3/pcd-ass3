@@ -2,8 +2,6 @@ package PuzzleActors;
 
 import PuzzleActors.Puzzle.PuzzleBoard;
 import PuzzleActors.Puzzle.Tile;
-import akka.actor.CoordinatedShutdown;
-import akka.actor.PoisonPill;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
@@ -14,7 +12,6 @@ import akka.cluster.ddata.*;
 import akka.cluster.ddata.typed.javadsl.DistributedData;
 import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
-
 import java.time.Duration;
 import java.util.ArrayList;
 
@@ -65,8 +62,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
         }
     }
 
-    private interface InternalCommand extends Command {
-    }
+    private interface InternalCommand extends Command { }
 
     private static class InternalUpdateResponse implements InternalCommand {
         final Replicator.UpdateResponse<LWWRegister<Tiles>> rsp;
@@ -94,7 +90,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
         }
     }
 
-    // adapter that turns the response messages from the replicator into our own protocol
+
     private final ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter;
     private final SelfUniqueAddress node;
     private final Key<LWWRegister<Tiles>> key;
@@ -104,9 +100,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     /**
      * Factory method e costruttore
      */
-
     public static Behavior<Command> create(int n, int m, String imagePath) {
-        //return Behaviors.setup(context -> new BoardActor(context, n, m));
         return Behaviors.setup(
                 ctx ->
                         DistributedData.withReplicatorMessageAdapter(
@@ -116,7 +110,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     private BoardActor(ActorContext<Command> context, ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter, int n, int m, String imagePath) {
         super(context);
-        System.out.println("\n other actor create \n");
+        System.out.println("\n BoardActor create \n");
         this.replicatorAdapter = replicatorAdapter;
         this.key = LWWRegisterKey.create("tiles");
         this.node = DistributedData.get(context.getSystem()).selfUniqueAddress();
@@ -167,12 +161,9 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     private Behavior<Command> onInternalGetResponse(InternalGetResponse msg) {
         if (msg.rsp instanceof Replicator.GetSuccess) {
             System.out.println("\n onInternalGetResponse Success\n");
-            //int value = ((Replicator.GetSuccess<?>) msg.rsp).get(key).getValue().intValue();
-            //msg.replyTo.tell(value);
             return this;
         } else {
-            // not dealing with failures
-            System.out.println("\n onInternalGetResponse Failed\n");
+            System.out.println("\n onInternalGetResponse Failed\nNeed new tiles");
             this.puzzle.createAndLoadTiles();
             return Behaviors.same();
         }
