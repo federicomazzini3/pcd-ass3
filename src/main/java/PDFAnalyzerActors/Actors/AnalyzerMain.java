@@ -6,13 +6,6 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
-/**
-    Esegue lo spawn degli attori ignorer, generator e sink
-    Invia all'ignorer un messaggio per iniziare il discovery delle parole da ignorare
-    Quando l'ignorer ha trovato le parole da ignorare, le passa al generator il quale
-    inizierà ad analizzare la directory contenente i pdf
- */
-
 public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
 
     /** Tipo di messaggio che questo attore processa */
