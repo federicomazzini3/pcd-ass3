@@ -1,6 +1,6 @@
 package PuzzleActors;
 
-import PuzzleActors.Puzzle.PuzzleBoard;
+import PuzzleActors.Puzzle.PuzzleBoardView;
 import PuzzleActors.Puzzle.Tile;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
@@ -95,7 +95,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     private final SelfUniqueAddress node;
     private final Key<LWWRegister<Tiles>> key;
     private Tiles cachedValue;
-    private final PuzzleBoard puzzle;
+    private final PuzzleBoardView puzzle;
 
     /**
      * Factory method e costruttore
@@ -117,7 +117,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
         this.replicatorAdapter.subscribe(this.key, InternalSubscribeResponse::new);
         String nodeAddress = node.uniqueAddress().address().getHost().get() + ":" + node.uniqueAddress().address().getPort().get();
-        this.puzzle = new PuzzleBoard(n, m, imagePath, nodeAddress, this.getContext().getSelf());
+        this.puzzle = new PuzzleBoardView(n, m, imagePath, nodeAddress, this.getContext().getSelf());
         this.getContext().getSelf().tell(new GetTiles());
     }
 

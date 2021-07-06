@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 @SuppressWarnings("serial")
-public class PuzzleBoard extends JFrame {
+public class PuzzleBoardView extends JFrame {
 
     final int rows, columns;
     String imagePath;
@@ -23,7 +23,7 @@ public class PuzzleBoard extends JFrame {
     private ActorRef<BoardActor.Command> puzzleActor;
     private final JPanel board;
 
-    public PuzzleBoard(final int rows, final int columns, String imagePath, String nodeAddress, ActorRef<BoardActor.Command> puzzleActor) {
+    public PuzzleBoardView(final int rows, final int columns, String imagePath, String nodeAddress, ActorRef<BoardActor.Command> puzzleActor) {
         this.rows = rows;
         this.columns = columns;
         this.imagePath = imagePath;
