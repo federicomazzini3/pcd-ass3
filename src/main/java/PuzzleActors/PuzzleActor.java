@@ -10,22 +10,16 @@ import akka.cluster.ddata.*;
 import akka.cluster.ddata.typed.javadsl.DistributedData;
 import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
-import scala.Int;
 
+/**
+ * Tramite gossip gli vengono comunicati i parametri iniziali e crea la board per il giocatore (facendo lo spawn di un attore BoardActor)
+ */
 public class PuzzleActor extends AbstractBehavior<PuzzleActor.Command> {
     interface Command {}
 
     public class Start implements Command { }
 
     private interface InternalCommand extends Command { }
-
-    private static class InternalUpdateResponse implements InternalCommand {
-        final Replicator.UpdateResponse<LWWRegister<InitActor.InitParams>> rsp;
-
-        InternalUpdateResponse(Replicator.UpdateResponse<LWWRegister<InitActor.InitParams>> rsp) {
-            this.rsp = rsp;
-        }
-    }
 
     private static final class InternalSubscribeResponse implements InternalCommand {
         final Replicator.SubscribeResponse<LWWRegister<InitActor.InitParams>> rsp;
@@ -69,7 +63,6 @@ public class PuzzleActor extends AbstractBehavior<PuzzleActor.Command> {
     @Override
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
-                .onMessage(InternalUpdateResponse.class, msg -> Behaviors.same())
                 .onMessage(Start.class, this::onStart)
                 .onMessage(InternalSubscribeResponse.class, this::onInternalSubscribeResponse)
                 .build();

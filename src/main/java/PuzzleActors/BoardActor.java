@@ -15,6 +15,12 @@ import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
 import java.time.Duration;
 import java.util.ArrayList;
 
+/**
+ * Istanzia una board per il giocatore e crea o recupera le tile per la partita, a seconda se queste all'interno della partita sono già state create
+ * Rimane in ascolto di eventuali modifiche alla board eseguite dal suo stesso giocatore tramite messaggi di tipo Swap
+ * oppure comunicate dagli altri giocatori tramite WriteMajority o gossip tramite messaggi di tipo onInternalSubscribeResponse
+ * modifica di conseguenza la board con l'aggiornamento
+ */
 public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     public interface Command {

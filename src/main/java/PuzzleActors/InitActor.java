@@ -13,6 +13,9 @@ import akka.cluster.ddata.typed.javadsl.DistributedData;
 import akka.cluster.ddata.typed.javadsl.Replicator;
 import akka.cluster.ddata.typed.javadsl.ReplicatorMessageAdapter;
 
+/**
+ * Si occupa dei parametri iniziali del puzzle: rows, columns, image
+ */
 public class InitActor extends AbstractBehavior<InitActor.Command> {
 
     interface Command { }
