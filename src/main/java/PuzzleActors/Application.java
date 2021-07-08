@@ -68,7 +68,7 @@ public class Application {
 
 
         Config config = ConfigFactory.parseMap(overrides)
-                .withFallback(ConfigFactory.load("Puzzle/transformation"));
+                .withFallback(ConfigFactory.load("Puzzle/application"));
 
         return ActorSystem.create(RootBehavior.create(rows, cols, imageUrl), "ClusterSystem", config);
     }

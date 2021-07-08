@@ -43,7 +43,6 @@ public class InitActor extends AbstractBehavior<InitActor.Command> {
     }
 
     public static Behavior<Command> create(String registerKey, int n, int m, String imagePath) {
-        System.out.println("\n Create InitActor: \n");
         return Behaviors.setup(
                 ctx ->
                         DistributedData.withReplicatorMessageAdapter(
@@ -78,7 +77,7 @@ public class InitActor extends AbstractBehavior<InitActor.Command> {
         return newReceiveBuilder()
                 .onMessage(InitParams.class, this::onInitialize)
                 .onMessage(InternalUpdateResponse.class, msg -> {
-                    System.out.println(msg.rsp);
+                    this.getContext().getLog().info(String.valueOf(msg.rsp));
                     return Behaviors.same();
                 })
                 .build();

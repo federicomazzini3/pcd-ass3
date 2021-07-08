@@ -21,7 +21,7 @@ public class AnalyzerMain extends AbstractBehavior<AnalyzerMain.Command> {
         return Behaviors.setup(context -> new AnalyzerMain(context, directoryPdf, toIgnoreFilePath, wordsToRetrieve, view));
     }
 
-    private AnalyzerMain(ActorContext<Command> context, String directoryPdf, String toIgnoreFilePath, int wordsToRetrieve, ActorRef<ViewActor.Command> view) {
+    private AnalyzerMain(ActorContext<Command> context, final String directoryPdf, final String toIgnoreFilePath, int wordsToRetrieve, ActorRef<ViewActor.Command> view) {
         super(context);
         this.ignorer = context.spawn(Ignorer.create(toIgnoreFilePath), "ignorer");
         this.collecter = context.spawn(Collecter.create(wordsToRetrieve, view), "collecter");

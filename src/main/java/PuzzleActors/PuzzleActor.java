@@ -30,7 +30,6 @@ public class PuzzleActor extends AbstractBehavior<PuzzleActor.Command> {
     }
 
     public static Behavior<Command> create(String nodeAddress) {
-        System.out.println("\n Create PuzzleService with first:\n");
         return Behaviors.setup(
                 ctx ->
                         DistributedData.withReplicatorMessageAdapter(
@@ -79,7 +78,7 @@ public class PuzzleActor extends AbstractBehavior<PuzzleActor.Command> {
         if (msg.rsp instanceof Replicator.Changed) {
             LWWRegister<InitActor.InitParams> initParams = ((Replicator.Changed<LWWRegister<InitActor.InitParams>>) msg.rsp).get(key);
             cachedValue = initParams.getValue();
-            System.out.println("\n " + this.getContext().getSelf() + " Parametri iniziali: " + cachedValue.n + " " + cachedValue.m + " " + cachedValue.imagePath);
+            this.getContext().getLog().info(" Parametri iniziali: " + cachedValue.n + " " + cachedValue.m + " " + cachedValue.imagePath);
             replicatorAdapter.unsubscribe(key);
             this.getContext().getSelf().tell(new Start());
             return this;

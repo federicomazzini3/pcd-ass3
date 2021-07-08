@@ -27,7 +27,9 @@ public class Ignorer extends AbstractBehavior<Ignorer.Command> {
     private HashSet<String> toIgnoreWords;
     private final StashBuffer<Ignorer.Command> buffer;
 
-    /** Factory method e costruttore */
+    /** Factory method e costruttore
+     *  Meccanismo di stashing per le richieste delle parole da ignorare quando non ancora calcolate
+     * */
     public static Behavior<Command> create(String toIgnoreFilePath) {
         return Behaviors.withStash(
                 100,

@@ -116,7 +116,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     private BoardActor(ActorContext<Command> context, ReplicatorMessageAdapter<BoardActor.Command, LWWRegister<Tiles>> replicatorAdapter, int n, int m, String imagePath) {
         super(context);
-        System.out.println("\n BoardActor create \n");
+        this.getContext().getLog().info("BoardActor create");
         this.replicatorAdapter = replicatorAdapter;
         this.key = LWWRegisterKey.create("tiles");
         this.node = DistributedData.get(context.getSystem()).selfUniqueAddress();
@@ -131,7 +131,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(InternalUpdateResponse.class, msg -> {
-                    System.out.println("\n Update done \n " + msg.rsp);
+                    this.getContext().getLog().info("Update done: " + msg.rsp);
                     return Behaviors.same();
                 }) //update effettuato dallo stesso attore
                 .onMessage(InternalGetResponse.class, this::onInternalGetResponse)
@@ -143,7 +143,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     }
 
     private Behavior<Command> onGetTiles(GetTiles command) {
-        System.out.println("\nGet Tiles");
+        this.getContext().getLog().info("Get Tiles");
         this.replicatorAdapter.askGet(
                 askReplyTo -> new Replicator.Get<>(key, new Replicator.ReadAll(Duration.ofSeconds(3)), askReplyTo),
                 rsp -> new InternalGetResponse(rsp, this.getContext().getSelf()));
@@ -151,7 +151,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
     }
 
     private Behavior<Command> onLoadTile(Tiles tiles) {
-        System.out.println("\n " + this.getContext().getSelf().toString() + "Load tiles \n");
+        this.getContext().getLog().info("Load tiles");
         cachedValue = tiles;
         replicatorAdapter.askUpdate(
                 askReplyTo ->
@@ -167,14 +167,14 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     private Behavior<Command> onInternalGetResponse(InternalGetResponse msg) {
         if (msg.rsp instanceof Replicator.GetSuccess) {
-            System.out.println("\nGetResponse Success\n");
+            this.getContext().getLog().info("GetResponse Success");
             LWWRegister<Tiles> tiles = ((Replicator.GetSuccess<LWWRegister<Tiles>>) msg.rsp).get(key);
             cachedValue = tiles.getValue();
-            System.out.println("\nCreo le prime tiles\n" + this.getContext().getSelf().toString() + "Numero tiles: \n " + cachedValue.tiles.size());
+            this.getContext().getLog().info("Creo le prime tiles");
             this.puzzle.refreshTiles(cachedValue);
             return this;
         } else {
-            System.out.println("\nGetResponse Failed: need new tiles");
+            this.getContext().getLog().info("GetResponse Failed: need new tiles");
             this.puzzle.createAndLoadTiles();
             return Behaviors.same();
         }
@@ -184,9 +184,9 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
         if (msg.rsp instanceof Replicator.Changed) {
             LWWRegister<Tiles> tiles = ((Replicator.Changed<LWWRegister<Tiles>>) msg.rsp).get(key);
             if(node.uniqueAddress().uid()  != ((Replicator.Changed<LWWRegister<Tiles>>) msg.rsp).dataValue().updatedBy().uid()){
-                System.out.println("\nNew board moves by: " + ((Replicator.Changed<LWWRegister<Tiles>>) msg.rsp).dataValue().updatedBy());
+                this.getContext().getLog().info("New board moves by: " + ((Replicator.Changed<LWWRegister<Tiles>>) msg.rsp).dataValue().updatedBy());
                 cachedValue = tiles.getValue();
-                System.out.println("\n" + this.getContext().getSelf().toString() + "Numero tiles: \n " + cachedValue.tiles.size());
+                this.getContext().getLog().info("Numero tiles: " + cachedValue.tiles.size());
                 this.puzzle.refreshTiles(cachedValue);
             }
             return this;
@@ -198,9 +198,9 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
 
     private Behavior<Command> onSwap(BoardActor.Swap swap) {
         //internal swap
-        getContext().getLog().info("Swap delle caselle");
+        this.getContext().getLog().info("Swap delle caselle");
         this.puzzle.updateTiles(swap.tile1, swap.tile2);
-        System.out.println("\n " + this.getContext().getSelf().toString() + "Load tiles \n");
+        this.getContext().getLog().info("Load tiles");
         replicatorAdapter.askUpdate(
                 askReplyTo ->
                         new Replicator.Update<>(
@@ -209,7 +209,7 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                                 new Replicator.WriteMajority(Duration.ofSeconds(5)),
                                 askReplyTo,
                                 curr -> {
-                                    System.out.println("\n cached value: " + cachedValue);
+                                    //this.getContext().getLog().info("cached value: " + cachedValue);
                                     TileRaw tileRaw1 = new TileRaw(swap.tile1.getOriginalPosition(), swap.tile1.getCurrentPosition());
                                     TileRaw tileRaw2 = new TileRaw(swap.tile2.getOriginalPosition(), swap.tile2.getCurrentPosition());
                                     cachedValue.tiles.remove(tileRaw1);
