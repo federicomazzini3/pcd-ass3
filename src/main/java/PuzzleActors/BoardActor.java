@@ -209,7 +209,6 @@ public class BoardActor extends AbstractBehavior<BoardActor.Command> {
                                 new Replicator.WriteMajority(Duration.ofSeconds(5)),
                                 askReplyTo,
                                 curr -> {
-                                    //this.getContext().getLog().info("cached value: " + cachedValue);
                                     TileRaw tileRaw1 = new TileRaw(swap.tile1.getOriginalPosition(), swap.tile1.getCurrentPosition());
                                     TileRaw tileRaw2 = new TileRaw(swap.tile2.getOriginalPosition(), swap.tile2.getCurrentPosition());
                                     cachedValue.tiles.remove(tileRaw1);
