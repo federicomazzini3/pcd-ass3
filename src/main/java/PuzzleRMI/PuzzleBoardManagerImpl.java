@@ -13,67 +13,33 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
-public class PuzzleBoardManagerImpl implements PuzzleBoardManager {
+public abstract class PuzzleBoardManagerImpl implements PuzzleBoardManager {
 
-    private Registry registry;
-    private int port;
-    private List<PuzzleBoardManager> managers;
-    private List<PuzzleBoardManager> toRemoveManagers;
-    private InitParams initParams;
-    private List<Position> positions;
-    private Long id;
-    private PuzzleBoard puzzleBoard;
+    Registry registry;
+    int port;
+    List<PuzzleBoardManager> managers;
+    List<PuzzleBoardManager> toRemoveManagers;
+    InitParams initParams;
+    List<Position> positions;
+    Long id;
+    PuzzleBoard puzzleBoard;
 
-    public PuzzleBoardManagerImpl(int port, int row, int columns, String imagePath) throws IOException {
+    public PuzzleBoardManagerImpl(int port){
         this.id = new Random().nextLong();
         this.port = port;
         managers = new ArrayList<>();
         toRemoveManagers = new ArrayList<>();
         log("Create");
-
-        //creazione parte server del peer
-        createRegistry(port);
-
-        //creazione dei parametri iniziali
-        createInitParams(row, columns, imagePath);
-
-        puzzleBoard = new PuzzleBoard(this.initParams.getRows(), this.initParams.getColumns(), this.initParams.getImage(), this);
-        puzzleBoard.createTiles();
-        this.positions = puzzleBoard.getPositions();
-        puzzleBoard.display(true);
     }
 
-    public PuzzleBoardManagerImpl(int port, String friendAddress, int friendPort) throws NotBoundException, RemoteException {
-        this.id = new Random().nextLong();
-        this.port = port;
-        managers = new ArrayList<>();
-        toRemoveManagers = new ArrayList<>();
-        log("Create");
-
-        //creazione parte server del peer
-        createRegistry(port);
-
-        //connessione al giocatore specificato
-        this.connect(friendAddress, friendPort);
-
-        this.retrieveInitParams();
-
-        this.retrievePositions();
-
-
-        puzzleBoard = new PuzzleBoard(this.initParams.getRows(), this.initParams.getColumns(), this.initParams.getImage(), this);
-        puzzleBoard.setPositions(this.positions);
-        puzzleBoard.display(true);
-    }
-
-    private void createRegistry(int port) throws RemoteException {
+    protected void createRegistry(int port) throws RemoteException {
         registry = LocateRegistry.createRegistry(port);
         PuzzleBoardManager manager = (PuzzleBoardManager) UnicastRemoteObject.exportObject(this, port);
         registry.rebind("manager", manager);
         this.addManager(manager);
     }
 
-    private void connect(String friendAddress, int friendPort) throws RemoteException, NotBoundException {
+    protected void connect(String friendAddress, int friendPort) throws RemoteException, NotBoundException {
         Registry registry = LocateRegistry.getRegistry(friendAddress, friendPort);
         PuzzleBoardManager friendManager = (PuzzleBoardManager) registry.lookup("manager");
 
@@ -81,7 +47,7 @@ public class PuzzleBoardManagerImpl implements PuzzleBoardManager {
         this.addToManagers(friendManager.getManagers());
     }
 
-    private void addToManagers(List<PuzzleBoardManager> friendManagers) throws RemoteException {
+    protected void addToManagers(List<PuzzleBoardManager> friendManagers) throws RemoteException {
         for (PuzzleBoardManager friendManager : friendManagers) {
             this.addManager(friendManager);
         }
@@ -103,12 +69,12 @@ public class PuzzleBoardManagerImpl implements PuzzleBoardManager {
         }
     }
 
-    private void addToRemoveManager(PuzzleBoardManager manager) {
+    protected void addToRemoveManager(PuzzleBoardManager manager) {
         this.toRemoveManagers.add(manager);
     }
 
-    private void removeManager() {
-        if(toRemoveManagers.size() > 0){
+    protected void removeManager() {
+        if (toRemoveManagers.size() > 0) {
             log("Delete manager from managers list");
             this.managers.removeAll(toRemoveManagers);
             toRemoveManagers.clear();
@@ -120,7 +86,7 @@ public class PuzzleBoardManagerImpl implements PuzzleBoardManager {
         return this.managers;
     }
 
-    private PuzzleBoardManager getFirstManager() throws RemoteException {
+    protected PuzzleBoardManager getFirstManager() throws RemoteException {
         for (PuzzleBoardManager manager : this.managers) {
             if (manager.getId() != this.getId())
                 return manager;
@@ -139,7 +105,7 @@ public class PuzzleBoardManagerImpl implements PuzzleBoardManager {
         return this.port;
     }
 
-    private void retrieveInitParams() throws RemoteException {
+    protected void retrieveInitParams() throws RemoteException {
         PuzzleBoardManager friendManager = this.getFirstManager();
         if (friendManager != null) {
             InitParams friendParams = friendManager.getInitParams();
@@ -150,7 +116,7 @@ public class PuzzleBoardManagerImpl implements PuzzleBoardManager {
             System.out.println("Can't retrieve init params, i don't know manager");
     }
 
-    private void retrievePositions() throws RemoteException {
+    protected void retrievePositions() throws RemoteException {
         PuzzleBoardManager friendManager = this.getFirstManager();
 
         if (friendManager != null) {
@@ -201,7 +167,7 @@ public class PuzzleBoardManagerImpl implements PuzzleBoardManager {
         removeManager();
     }
 
-    private void log(String s) {
+    protected void log(String s) {
         System.out.println("[Peer-" + this.id + "]: " + s);
     }
 

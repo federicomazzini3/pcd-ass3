@@ -23,7 +23,6 @@ public class InitialView extends JFrame implements ActionListener {
     private final JLabel lblFriendAddress;
     private final JButton btnStartGame;
     private final JButton btnJoinGame;
-    private final JButton btnStop;
     private Controller controller;
 
     public InitialView(Controller controller) {
@@ -33,10 +32,10 @@ public class InitialView extends JFrame implements ActionListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(381, 420);
+        this.setSize(381, 355);
       
         JPanel panel = new JPanel();
-        panel.setBounds(0, 0, 377, 393);
+        panel.setBounds(0, 0, 377, 355);
         getContentPane().setLayout(null);
 
         txtFldRows = new JTextField();
@@ -117,15 +116,9 @@ public class InitialView extends JFrame implements ActionListener {
         btnStartGame.setBounds(15, 277, 165, 41);
         btnStartGame.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
-        btnStop = new JButton("Stop game");
-        btnStop.setBounds(15, 329, 335, 41);
-        btnStop.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        btnStop.setEnabled(false);
-
         panel.setLayout(null);
         panel.add(btnStartGame);
         panel.add(btnJoinGame);
-        panel.add(btnStop);
         panel.add(lblPublicAddress);
         panel.add(lblRows);
         panel.add(lblColumns);
@@ -144,7 +137,6 @@ public class InitialView extends JFrame implements ActionListener {
         this.setVisible(true);
         btnJoinGame.addActionListener(this);
         btnStartGame.addActionListener(this);
-        btnStop.addActionListener(this);
     }
 
     public void display(boolean flag){
@@ -167,7 +159,6 @@ public class InitialView extends JFrame implements ActionListener {
             if (requiredFieldJoinGame()) {
                     controller.notifyJoin(Integer.parseInt(publicPort), friendAddress, Integer.parseInt(friendPort));
                 SwingUtilities.invokeLater(() -> {
-                    this.btnStop.setEnabled(true);
                     this.btnStartGame.setEnabled(false);
                     this.btnJoinGame.setEnabled(false);
                 });
@@ -176,18 +167,10 @@ public class InitialView extends JFrame implements ActionListener {
             if (requiredFieldStartGame()) {
                 controller.notifyStart(Integer.parseInt(publicPort), Integer.parseInt(rows), Integer.parseInt(cols), imageUrl);
                 SwingUtilities.invokeLater(() -> {
-                    this.btnStop.setEnabled(true);
                     this.btnStartGame.setEnabled(false);
                     this.btnJoinGame.setEnabled(false);
                 });
             } else System.out.println("Other field required");
-        } else if (src == btnStop) {
-            controller.notifyStop();
-            SwingUtilities.invokeLater(() -> {
-                this.btnStop.setEnabled(false);
-                this.btnStartGame.setEnabled(true);
-                this.btnJoinGame.setEnabled(true);
-            });
         }
     }
 

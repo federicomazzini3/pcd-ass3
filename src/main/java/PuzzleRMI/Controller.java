@@ -8,13 +8,13 @@ public class Controller {
 
     PuzzleBoardManagerImpl nodeManager;
 
-    public Controller(){
+    public Controller() {
     }
 
-    public void notifyJoin(int port, String friendAddress, int friendPort){
+    public void notifyJoin(int port, String friendAddress, int friendPort) {
         ((Runnable) () -> {
             try {
-                nodeManager = new PuzzleBoardManagerImpl(port, friendAddress, friendPort);
+                nodeManager = new JoinPlayer(port, friendAddress, friendPort);
             } catch (NotBoundException e) {
                 e.printStackTrace();
             } catch (RemoteException e) {
@@ -26,13 +26,10 @@ public class Controller {
     public void notifyStart(int port, int rows, int columns, String imageUrl) {
         ((Runnable) () -> {
             try {
-                nodeManager = new PuzzleBoardManagerImpl(port, rows, columns, imageUrl);
+                nodeManager = new FirstPlayer(port, rows, columns, imageUrl);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }).run();
-    }
-
-    public synchronized void notifyStop() {
     }
 }
