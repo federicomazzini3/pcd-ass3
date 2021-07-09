@@ -1,4 +1,6 @@
-package PuzzleCentralized;
+package PuzzleRMI;
+
+import javax.naming.ldap.Control;
 
 /**
  * 
@@ -17,7 +19,10 @@ public class Application {
 		
 		final String imagePath = "src/main/java/PuzzleCentralized/bletchley-park-mansion.jpg";
 		
-		final PuzzleBoard puzzle = new PuzzleBoard(n, m, imagePath);
-        puzzle.display(true);
+		//final PuzzleBoard puzzle = new PuzzleBoard(n, m, imagePath);
+        //puzzle.display(true);
+		Controller controller = new Controller();
+		InitialView initView = new InitialView(controller);
+		initView.display(true);
 	}
 }
