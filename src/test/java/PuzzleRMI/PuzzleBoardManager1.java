@@ -1,10 +1,7 @@
 package PuzzleRMI;
 
-import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 
 class PuzzleBoardManager1 {
 

@@ -103,7 +103,7 @@ public class InitialView extends JFrame implements ActionListener {
         lblLocalPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
         txtFldFriendAddress = new JTextField();
-        txtFldFriendAddress.setText("127.0.0.1:25251");
+        txtFldFriendAddress.setText("127.0.0.1");
         txtFldFriendAddress.setBounds(137, 234, 206, 23);
         txtFldFriendAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldFriendAddress.setColumns(10);

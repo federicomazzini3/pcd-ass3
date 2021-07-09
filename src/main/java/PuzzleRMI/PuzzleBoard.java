@@ -7,7 +7,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.CropImageFilter;
 import java.awt.image.FilteredImageSource;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,16 +17,20 @@ import java.util.stream.IntStream;
 public class PuzzleBoard extends JFrame{
 	
 	final int rows, columns;
+	final byte[] imageRaw;
 	private List<Tile> tiles = new ArrayList<>();
 	
 	private SelectionManager selectionManager = new SelectionManager();
 	private final JPanel board;
+	private final PuzzleBoardManagerImpl puzzleBoardManager;
 
-    public PuzzleBoard(final int rows, final int columns, final byte[] imagePath) {
+    public PuzzleBoard(final int rows, final int columns, final byte[] imageRaw, PuzzleBoardManagerImpl puzzleBoardManager) {
     	this.rows = rows;
 		this.columns = columns;
+		this.imageRaw = imageRaw;
+		this.puzzleBoardManager = puzzleBoardManager;
 
-    	setTitle("PuzzleCentralized");
+    	setTitle("Puzzle RMI " + puzzleBoardManager.getPort());
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
@@ -35,9 +38,6 @@ public class PuzzleBoard extends JFrame{
         board.setBorder(BorderFactory.createLineBorder(Color.gray));
         board.setLayout(new GridLayout(rows, columns, 0, 0));
         getContentPane().add(board, BorderLayout.CENTER);
-        
-        createTiles(imagePath);
-        paintPuzzle();
     }
 
     public void display(boolean flag){
@@ -45,11 +45,11 @@ public class PuzzleBoard extends JFrame{
     }
 
     /** Popola una lista di oggetti Tile, i quali sono composti da immagine, posizione originale immagine e posizione corrente immagine*/
-    private void createTiles(final byte[] imageRaw) {
+    public void createTiles() {
 		final BufferedImage image;
         
         try {
-            ByteArrayInputStream bis = new ByteArrayInputStream(imageRaw);
+            ByteArrayInputStream bis = new ByteArrayInputStream(this.imageRaw);
             image = ImageIO.read(bis);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Could not load image", "Error", JOptionPane.ERROR_MESSAGE);
@@ -77,10 +77,32 @@ public class PuzzleBoard extends JFrame{
                 position++;
             }
         }
+        paintPuzzle();
 	}
 
+    public void setPositions(List<Position> positions) {
+        if (this.tiles.size() == 0)
+            createTiles();
+        for (Tile tile : this.tiles) {
+            for (Position position : positions) {
+                if (tile.getOriginalPosition() == position.originalPosition)
+                    tile.setCurrentPosition(position.currentPosition);
+            }
+        }
+        selectionManager.deselection();
+        paintPuzzle();
+    }
+
+	public List<Position> getPositions(){
+        List<Position> positions = new ArrayList<>();
+        for(Tile tile: tiles){
+            positions.add(tile.getPositions());
+        }
+        return positions;
+    }
+
 	/** Data una collezione di Tile, inserisce al'interno del JPanel board ogni Tile e aggiunge un listener per le eventuali modifiche*/
-    private void paintPuzzle() {
+    public void paintPuzzle() {
         SwingUtilities.invokeLater(() -> {
 
             board.removeAll();
@@ -92,15 +114,15 @@ public class PuzzleBoard extends JFrame{
                 board.add(btn);
                 btn.setBorder(BorderFactory.createLineBorder(Color.gray));
                 btn.addActionListener(actionListener -> {
-                    selectionManager.selectTile(tile, () -> {
-                        paintPuzzle();
-                        checkSolution();
+                    selectionManager.selectTile(tile, (position1, position2) -> {
+                        puzzleBoardManager.swap(position1, position2);
                     });
                 });
             });
 
-            pack();
-            setLocationRelativeTo(null);
+            this.pack();
+            this.setVisible(true);
+            checkSolution();
         });
     }
 

@@ -12,31 +12,25 @@ public class Controller {
     }
 
     public void notifyJoin(int port, String friendAddress, int friendPort){
-        new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    nodeManager = new PuzzleBoardManagerImpl(port, friendAddress, friendPort);
-                } catch (NotBoundException e) {
-                    e.printStackTrace();
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
+        ((Runnable) () -> {
+            try {
+                nodeManager = new PuzzleBoardManagerImpl(port, friendAddress, friendPort);
+            } catch (NotBoundException e) {
+                e.printStackTrace();
+            } catch (RemoteException e) {
+                e.printStackTrace();
             }
-        };
+        }).run();
     }
 
     public void notifyStart(int port, int rows, int columns, String imageUrl) {
-        new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    nodeManager = new PuzzleBoardManagerImpl(port, rows, columns, imageUrl);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        ((Runnable) () -> {
+            try {
+                nodeManager = new PuzzleBoardManagerImpl(port, rows, columns, imageUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        };
+        }).run();
     }
 
     public synchronized void notifyStop() {
