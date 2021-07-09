@@ -5,9 +5,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.UnknownHostException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 
 public class InitialView extends JFrame implements ActionListener {
     private final JTextField txtFldRows;
@@ -22,7 +19,7 @@ public class InitialView extends JFrame implements ActionListener {
     private final JLabel lblImageUrl;
     private final JLabel lblPublicAddress;
     private final JLabel lblPublicPort;
-    private final JLabel lblLocalPort;
+    private final JLabel lblFriendPort;
     private final JLabel lblFriendAddress;
     private final JButton btnStartGame;
     private final JButton btnJoinGame;
@@ -63,12 +60,12 @@ public class InitialView extends JFrame implements ActionListener {
         lblColumns.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
         txtFldImageUrl = new JTextField();
-        txtFldImageUrl.setText("https://www.calciotoday.it/wp-content/uploads/2021/06/Locatelli-2.jpg");
+        txtFldImageUrl.setText("src/main/java/PuzzleCentralized/bletchley-park-mansion.jpg");
         txtFldImageUrl.setBounds(137, 98, 206, 23);
         txtFldImageUrl.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldImageUrl.setColumns(10);
 
-        lblImageUrl = new JLabel("Image Url");
+        lblImageUrl = new JLabel("Image path");
         lblImageUrl.setBounds(20, 98, 107, 23);
         lblImageUrl.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
@@ -78,7 +75,7 @@ public class InitialView extends JFrame implements ActionListener {
         txtFldPublicAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldPublicAddress.setColumns(10);
 
-        lblPublicAddress = new JLabel("Public Address");
+        lblPublicAddress = new JLabel("Your address");
         lblPublicAddress.setBounds(20, 132, 107, 20);
         lblPublicAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
@@ -88,29 +85,29 @@ public class InitialView extends JFrame implements ActionListener {
         txtFldPublicPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldPublicPort.setColumns(10);
 
-        lblPublicPort = new JLabel("Public port");
+        lblPublicPort = new JLabel("Your port");
         lblPublicPort.setBounds(20, 164, 107, 23);
         lblPublicPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
-        txtFldLocalPort = new JTextField();
-        txtFldLocalPort.setText("25251");
-        txtFldLocalPort.setBounds(137, 200, 206, 23);
-        txtFldLocalPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        txtFldLocalPort.setColumns(10);
-
-        lblLocalPort = new JLabel("Local port");
-        lblLocalPort.setBounds(20, 200, 107, 23);
-        lblLocalPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
-
         txtFldFriendAddress = new JTextField();
         txtFldFriendAddress.setText("127.0.0.1");
-        txtFldFriendAddress.setBounds(137, 234, 206, 23);
+        txtFldFriendAddress.setBounds(137, 200, 206, 23);
         txtFldFriendAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldFriendAddress.setColumns(10);
 
         lblFriendAddress = new JLabel("Friend Address");
-        lblFriendAddress.setBounds(20, 234, 107, 23);
+        lblFriendAddress.setBounds(20, 200, 107, 23);
         lblFriendAddress.setFont(new Font("Tahoma", Font.PLAIN, 14));
+
+        txtFldLocalPort = new JTextField();
+        txtFldLocalPort.setText("25251");
+        txtFldLocalPort.setBounds(137, 234, 206, 23);
+        txtFldLocalPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        txtFldLocalPort.setColumns(10);
+
+        lblFriendPort = new JLabel("Friend port");
+        lblFriendPort.setBounds(20, 234, 107, 23);
+        lblFriendPort.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
         btnJoinGame = new JButton("Join a game");
         btnJoinGame.setBounds(185, 277, 165, 41);
@@ -134,7 +131,7 @@ public class InitialView extends JFrame implements ActionListener {
         panel.add(lblColumns);
         panel.add(lblImageUrl);
         panel.add(lblPublicPort);
-        panel.add(lblLocalPort);
+        panel.add(lblFriendPort);
         panel.add(lblFriendAddress);
         panel.add(txtFldRows);
         panel.add(txtFldColumns);
