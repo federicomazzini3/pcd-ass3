@@ -3,8 +3,8 @@ package PuzzleRMI;
 public class Application {
 
 	public static void main(final String[] args) {
-		Controller controller = new Controller();
-		InitialView initView = new InitialView(controller);
+		InitialController initialController = new InitialController();
+		InitialView initView = new InitialView(initialController);
 		initView.display(true);
 	}
 }
