@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
-public abstract class PuzzleBoardManagerImpl implements PuzzleBoardManager {
+public abstract class AbstractPuzzleBoardManager implements PuzzleBoardManager {
 
     Registry registry;
     int port;
@@ -21,33 +21,27 @@ public abstract class PuzzleBoardManagerImpl implements PuzzleBoardManager {
     List<PuzzleBoardManager> toRemoveManagers;
     InitParams initParams;
     List<Position> positions;
-    Long id;
+    int id;
     PuzzleBoard puzzleBoard;
 
-    public PuzzleBoardManagerImpl(int port){
-        this.id = new Random().nextLong();
+    public AbstractPuzzleBoardManager(int port){
+        this.id = new Random().nextInt();
         this.port = port;
         managers = new ArrayList<>();
         toRemoveManagers = new ArrayList<>();
         log("Create");
     }
 
-    protected void createRegistry(int port) throws RemoteException {
+    @Override
+    public void createRegistry(int port) throws RemoteException {
         registry = LocateRegistry.createRegistry(port);
         PuzzleBoardManager manager = (PuzzleBoardManager) UnicastRemoteObject.exportObject(this, port);
         registry.rebind("manager", manager);
         this.addManager(manager);
     }
 
-    protected void connect(String friendAddress, int friendPort) throws RemoteException, NotBoundException {
-        Registry registry = LocateRegistry.getRegistry(friendAddress, friendPort);
-        PuzzleBoardManager friendManager = (PuzzleBoardManager) registry.lookup("manager");
-
-        //aggiungo tra i miei manager tutti quelli che conosce il primo manager
-        this.addToManagers(friendManager.getManagers());
-    }
-
-    protected void addToManagers(List<PuzzleBoardManager> friendManagers) throws RemoteException {
+    @Override
+    public void addToManagers(List<PuzzleBoardManager> friendManagers) throws RemoteException {
         for (PuzzleBoardManager friendManager : friendManagers) {
             this.addManager(friendManager);
         }
@@ -61,19 +55,19 @@ public abstract class PuzzleBoardManagerImpl implements PuzzleBoardManager {
             //aggiunta in remoto di questo manager
             try {
                 friendManager.addManager(this);
-                log("Manager of Peer-" + friendManager.getId() + " added");
+                log("Peer-" + friendManager.getId() + " added");
             } catch (RemoteException e) {
                 addToRemoveManager(friendManager);
-                log("Manager died, I'll remove it");
+                log("Peer died, I'll remove it");
             }
         }
     }
 
-    protected void addToRemoveManager(PuzzleBoardManager manager) {
+    public void addToRemoveManager(PuzzleBoardManager manager) {
         this.toRemoveManagers.add(manager);
     }
 
-    protected void removeManager() {
+    public void removeManager() {
         if (toRemoveManagers.size() > 0) {
             log("Delete manager from managers list");
             this.managers.removeAll(toRemoveManagers);
@@ -86,7 +80,8 @@ public abstract class PuzzleBoardManagerImpl implements PuzzleBoardManager {
         return this.managers;
     }
 
-    protected PuzzleBoardManager getFirstManager() throws RemoteException {
+    @Override
+    public PuzzleBoardManager getFirstManager() throws RemoteException {
         for (PuzzleBoardManager manager : this.managers) {
             if (manager.getId() != this.getId())
                 return manager;
@@ -105,34 +100,6 @@ public abstract class PuzzleBoardManagerImpl implements PuzzleBoardManager {
         return this.port;
     }
 
-    protected void retrieveInitParams() throws RemoteException {
-        PuzzleBoardManager friendManager = this.getFirstManager();
-        if (friendManager != null) {
-            InitParams friendParams = friendManager.getInitParams();
-            InitParams params = new InitParamsImpl(friendParams.getRows(), friendParams.getColumns(), friendParams.getImage());
-            this.initParams = params;
-            log("Retrieve initParams: " + this.initParams.getRows() + ", " + this.initParams.getColumns());
-        } else
-            System.out.println("Can't retrieve init params, i don't know manager");
-    }
-
-    protected void retrievePositions() throws RemoteException {
-        PuzzleBoardManager friendManager = this.getFirstManager();
-
-        if (friendManager != null) {
-            this.positions = friendManager.getPositions();
-            log("Retrieve positions from " + friendManager.getId());
-        } else
-            System.out.println("Can't retrieve positions, i don't know manager");
-    }
-
-    @Override
-    public void createInitParams(int rows, int columns, String image) throws IOException {
-        byte[] imageRaw = Files.readAllBytes(new File(image).toPath());
-        this.initParams = new InitParamsImpl(rows, columns, imageRaw);
-        log("Create initParams: " + this.initParams.getRows() + ", " + this.initParams.getColumns());
-    }
-
     @Override
     public InitParams getInitParams() {
         return this.initParams;
@@ -143,21 +110,30 @@ public abstract class PuzzleBoardManagerImpl implements PuzzleBoardManager {
         return this.positions;
     }
 
+    //update di tutte le posizioni
     @Override
-    public void updatePosition(List<Position> positions) {
+    public synchronized void updatePosition(List<Position> positions) {
         this.positions = new ArrayList<>(positions);
         this.puzzleBoard.setPositions(positions);
     }
 
+    //update delle sole due tiles swappate
     @Override
-    public void swap(Position position1, Position position2) {
-        this.positions.remove(position1);
-        this.positions.remove(position2);
-        this.positions.add(position1);
-        this.positions.add(position2);
+    public synchronized void updatePosition(Position position1, Position position2) {
+        this.updateInternalPosition(position1, position2);
+        this.puzzleBoard.setPositions(this.positions);
+    }
+
+    protected void swap(Position position1, Position position2) {
+        this.updateInternalPosition(position1, position2);
+        this.spreadSwap();
+    }
+
+    private void spreadSwap(){
         for (PuzzleBoardManager manager : this.managers) {
             try {
                 log("update position");
+                //manager.updatePosition(position1, position2);
                 manager.updatePosition(this.positions);
             } catch (RemoteException e) {
                 log("not update position");
@@ -167,7 +143,14 @@ public abstract class PuzzleBoardManagerImpl implements PuzzleBoardManager {
         removeManager();
     }
 
-    protected void log(String s) {
+    private void updateInternalPosition(Position position1, Position position2){
+        this.positions.remove(position1);
+        this.positions.remove(position2);
+        this.positions.add(position1);
+        this.positions.add(position2);
+    }
+
+    public void log(String s) {
         System.out.println("[Peer-" + this.id + "]: " + s);
     }
 
@@ -175,7 +158,7 @@ public abstract class PuzzleBoardManagerImpl implements PuzzleBoardManager {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PuzzleBoardManagerImpl that = (PuzzleBoardManagerImpl) o;
+        AbstractPuzzleBoardManager that = (AbstractPuzzleBoardManager) o;
         return Objects.equals(id, that.id);
     }
 

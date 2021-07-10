@@ -22,9 +22,9 @@ public class PuzzleBoard extends JFrame{
 	
 	private SelectionManager selectionManager = new SelectionManager();
 	private final JPanel board;
-	private final PuzzleBoardManagerImpl puzzleBoardManager;
+	private final AbstractPuzzleBoardManager puzzleBoardManager;
 
-    public PuzzleBoard(final int rows, final int columns, final byte[] imageRaw, PuzzleBoardManagerImpl puzzleBoardManager) {
+    public PuzzleBoard(final int rows, final int columns, final byte[] imageRaw, AbstractPuzzleBoardManager puzzleBoardManager) {
     	this.rows = rows;
 		this.columns = columns;
 		this.imageRaw = imageRaw;
@@ -115,7 +115,7 @@ public class PuzzleBoard extends JFrame{
                 btn.setBorder(BorderFactory.createLineBorder(Color.gray));
                 btn.addActionListener(actionListener -> {
                     selectionManager.selectTile(tile, (position1, position2) -> {
-                        puzzleBoardManager.swap(position1, position2);
+                        ((Runnable) () -> puzzleBoardManager.swap(position1, position2)).run();
                     });
                 });
             });

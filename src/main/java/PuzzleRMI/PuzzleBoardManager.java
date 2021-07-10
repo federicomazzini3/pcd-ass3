@@ -7,7 +7,13 @@ import java.util.List;
 
 public interface PuzzleBoardManager extends Remote {
 
+    void createRegistry(int port) throws RemoteException;
+
     void addManager(PuzzleBoardManager friendManager) throws RemoteException;
+
+    void addToManagers(List<PuzzleBoardManager> friendManagers) throws RemoteException;
+
+    PuzzleBoardManager getFirstManager() throws RemoteException;
 
     List<PuzzleBoardManager> getManagers() throws RemoteException;
 
@@ -15,13 +21,11 @@ public interface PuzzleBoardManager extends Remote {
 
     long getPort() throws RemoteException;
 
-    void createInitParams(int rows, int columns, String image) throws IOException, RemoteException;
-
     InitParams getInitParams() throws RemoteException;
 
     List<Position> getPositions() throws RemoteException;
 
     void updatePosition(List<Position> positions) throws RemoteException;
 
-    void swap(Position position1, Position position2) throws RemoteException;
+    void updatePosition(Position position1, Position position2) throws RemoteException;
 }

@@ -1,14 +1,34 @@
 package PuzzleRMI;
 
 import java.io.Serializable;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
 
-public interface InitParams extends Serializable {
+public class InitParams implements Serializable {
+    int rows;
+    int columns;
+    byte[] image;
 
-    int getRows();
+    public InitParams(int rows, int columns, byte[] image){
+        this.rows = rows;
+        this.columns = columns;
+        this.image = image;
+    }
 
-    int getColumns();
+    public int getRows(){
+        return this.rows;
+    }
 
-    byte[] getImage();
+    public int getColumns(){
+        return this.columns;
+    }
+
+    public byte[] getImage(){
+        return this.image;
+    }
+
+    public String toString() {
+        return "InitParamsImpl{" +
+                "rows=" + rows +
+                ", columns=" + columns +
+                '}';
+    }
 }

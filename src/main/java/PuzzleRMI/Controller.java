@@ -6,7 +6,7 @@ import java.rmi.RemoteException;
 
 public class Controller {
 
-    PuzzleBoardManagerImpl nodeManager;
+    AbstractPuzzleBoardManager nodeManager;
 
     public Controller() {
     }
