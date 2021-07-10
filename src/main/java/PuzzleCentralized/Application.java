@@ -12,12 +12,12 @@ package PuzzleCentralized;
 public class Application {
 
 	public static void main(final String[] args) {
-		final int n = 5;
-		final int m = 3;
+		final int n = 3;
+		final int m = 5;
 		
 		final String imagePath = "src/main/java/PuzzleCentralized/bletchley-park-mansion.jpg";
 		
 		final PuzzleBoard puzzle = new PuzzleBoard(n, m, imagePath);
-        puzzle.setVisible(true);
+        puzzle.display(true);
 	}
 }
