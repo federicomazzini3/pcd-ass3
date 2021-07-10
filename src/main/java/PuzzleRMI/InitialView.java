@@ -23,10 +23,10 @@ public class InitialView extends JFrame implements ActionListener {
     private final JLabel lblFriendAddress;
     private final JButton btnStartGame;
     private final JButton btnJoinGame;
-    private Controller controller;
+    private InitialController initialController;
 
-    public InitialView(Controller controller) {
-        this.controller = controller;
+    public InitialView(InitialController initialController) {
+        this.initialController = initialController;
     	setResizable(false);
         setTitle("PuzzleDecentralized");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -157,7 +157,7 @@ public class InitialView extends JFrame implements ActionListener {
         Object src = ev.getSource();
         if (src == btnJoinGame) {
             if (requiredFieldJoinGame()) {
-                    controller.notifyJoin(Integer.parseInt(publicPort), friendAddress, Integer.parseInt(friendPort));
+                    initialController.notifyJoin(Integer.parseInt(publicPort), friendAddress, Integer.parseInt(friendPort));
                 SwingUtilities.invokeLater(() -> {
                     this.btnStartGame.setEnabled(false);
                     this.btnJoinGame.setEnabled(false);
@@ -165,7 +165,7 @@ public class InitialView extends JFrame implements ActionListener {
             } else System.out.println("Other field required");
         } else if (src == btnStartGame) {
             if (requiredFieldStartGame()) {
-                controller.notifyStart(Integer.parseInt(publicPort), Integer.parseInt(rows), Integer.parseInt(cols), imageUrl);
+                initialController.notifyStart(Integer.parseInt(publicPort), Integer.parseInt(rows), Integer.parseInt(cols), imageUrl);
                 SwingUtilities.invokeLater(() -> {
                     this.btnStartGame.setEnabled(false);
                     this.btnJoinGame.setEnabled(false);

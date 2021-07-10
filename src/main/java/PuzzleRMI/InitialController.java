@@ -4,12 +4,9 @@ import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
-public class Controller {
+public class InitialController {
 
     AbstractPuzzleBoardManager nodeManager;
-
-    public Controller() {
-    }
 
     public void notifyJoin(int port, String friendAddress, int friendPort) {
         ((Runnable) () -> {

@@ -32,5 +32,4 @@ public class FirstPlayer extends AbstractPuzzleBoardManager {
         this.positions = new ArrayList<>(positions);
         log("Create first tile's positions");
     }
-
 }
