@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
 @SuppressWarnings("serial")
@@ -114,9 +116,8 @@ public class PuzzleBoard extends JFrame{
                 board.add(btn);
                 btn.setBorder(BorderFactory.createLineBorder(Color.gray));
                 btn.addActionListener(actionListener -> {
-                    selectionManager.selectTile(tile, (position1, position2) -> {
-                        ((Runnable) () -> puzzleBoardManager.swap(position1, position2)).run();
-                    });
+                    selectionManager.selectTile(tile, (position1, position2) ->
+                            Executors.newSingleThreadExecutor().execute(() -> puzzleBoardManager.swap(position1, position2)));
                 });
             });
 

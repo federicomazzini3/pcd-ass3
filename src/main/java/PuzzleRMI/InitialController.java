@@ -1,32 +1,35 @@
 package PuzzleRMI;
 
+import akka.cluster.typed.Join;
+
 import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.concurrent.Executors;
 
 public class InitialController {
 
     AbstractPuzzleBoardManager nodeManager;
 
     public void notifyJoin(int port, String friendAddress, int friendPort) {
-        ((Runnable) () -> {
+        Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                nodeManager = new JoinPlayer(port, friendAddress, friendPort);
+                new JoinPlayer(port, friendAddress, friendPort);
             } catch (NotBoundException e) {
                 e.printStackTrace();
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-        }).run();
+        });
     }
 
     public void notifyStart(int port, int rows, int columns, String imageUrl) {
-        ((Runnable) () -> {
+        Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                nodeManager = new FirstPlayer(port, rows, columns, imageUrl);
+                new FirstPlayer(port, rows, columns, imageUrl);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }).run();
+        });
     }
 }

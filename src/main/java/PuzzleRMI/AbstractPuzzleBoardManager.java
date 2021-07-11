@@ -115,6 +115,7 @@ public abstract class AbstractPuzzleBoardManager implements PuzzleBoardManager {
     public synchronized void updatePosition(List<Position> positions) {
         this.positions = new ArrayList<>(positions);
         this.puzzleBoard.setPositions(positions);
+        log("Update position");
     }
 
     //update delle sole due tiles swappate
@@ -122,21 +123,23 @@ public abstract class AbstractPuzzleBoardManager implements PuzzleBoardManager {
     public synchronized void updatePosition(Position position1, Position position2) {
         this.updateInternalPosition(position1, position2);
         this.puzzleBoard.setPositions(this.positions);
+        log("Update position");
     }
 
     protected void swap(Position position1, Position position2) {
         this.updateInternalPosition(position1, position2);
+        log("Internal swap");
         this.spreadSwap();
     }
 
     private void spreadSwap(){
         for (PuzzleBoardManager manager : this.managers) {
             try {
-                log("update position");
+                log("Spread swap to other peer");
                 //manager.updatePosition(position1, position2);
                 manager.updatePosition(this.positions);
             } catch (RemoteException e) {
-                log("not update position");
+                log("Can't spread swap, peer is down");
                 toRemoveManagers.add(manager);
             }
         }
