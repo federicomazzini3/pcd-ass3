@@ -59,7 +59,7 @@ public class InitialView extends JFrame implements ActionListener {
         lblColumns.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
         txtFldImageUrl = new JTextField();
-        txtFldImageUrl.setText("src/main/java/PuzzleCentralized/bletchley-park-mansion.jpg");
+        txtFldImageUrl.setText("src/main/java/PuzzleRMI/bletchley-park-mansion.jpg");
         txtFldImageUrl.setBounds(137, 98, 206, 23);
         txtFldImageUrl.setFont(new Font("Tahoma", Font.PLAIN, 14));
         txtFldImageUrl.setColumns(10);

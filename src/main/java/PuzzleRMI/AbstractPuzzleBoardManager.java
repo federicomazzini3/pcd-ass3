@@ -1,9 +1,5 @@
 package PuzzleRMI;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -17,11 +13,11 @@ public abstract class AbstractPuzzleBoardManager implements PuzzleBoardManager {
 
     Registry registry;
     int port;
+    int id;
     List<PuzzleBoardManager> managers;
     List<PuzzleBoardManager> toRemoveManagers;
     InitParams initParams;
     List<Position> positions;
-    int id;
     PuzzleBoard puzzleBoard;
 
     public AbstractPuzzleBoardManager(int port){

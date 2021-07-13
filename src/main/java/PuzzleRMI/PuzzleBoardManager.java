@@ -17,6 +17,10 @@ public interface PuzzleBoardManager extends Remote {
 
     List<PuzzleBoardManager> getManagers() throws RemoteException;
 
+    void updatePosition(List<Position> positions) throws RemoteException;
+
+    void updatePosition(Position position1, Position position2) throws RemoteException;
+
     long getId() throws RemoteException;
 
     long getPort() throws RemoteException;
@@ -24,8 +28,4 @@ public interface PuzzleBoardManager extends Remote {
     InitParams getInitParams() throws RemoteException;
 
     List<Position> getPositions() throws RemoteException;
-
-    void updatePosition(List<Position> positions) throws RemoteException;
-
-    void updatePosition(Position position1, Position position2) throws RemoteException;
 }
